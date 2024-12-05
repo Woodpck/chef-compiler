@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='header.jpg') }}" alt="Header Image" class="header-image">
+        <h1>ChefScript</h1>
+        <nav>
+            <ul>
+                <li>File</li>
+                <li>Edit</li>
+            </ul>
+        </nav>
+    </header>
+    <main class="three-column-layout">
+        <div class="column input-area">
+            <form method="POST">
+                <textarea name="code" placeholder="Enter your code here..."></textarea>
+                <div class="button-container">
+                    <button type="submit" name="action" value="lexical">Lexical Analyzer</button>
+                    <button type="submit" name="action" value="syntax">Syntax Analyzer</button>
+                    <button type="submit" name="action" value="semantic">Semantic Analyzer</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="column error-sections">
+            <div class="error-block">
+                <h2>Lexical Errors</h2>
+                <p>{{ error_tokens_text }}</p>
+            </div>
+            <div class="error-block">
+                <h2>Syntax Errors</h2>
+                <p>{{ error_syntax_text }}</p>
+            </div>
+            <div class="error-block">
+                <h2>Semantic Errors</h2>
+                <p>{{ error_semantic_text }}</p>
+            </div>
+        </div>
+
+        <div class="column result-table">
+            <h2>Lexical and Token Table</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lexeme</th>
+                        <th>Token</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lexeme, token in result %}
+                    <tr>
+                        <td>{{ lexeme }}</td>
+                        <td>{{ token }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>
