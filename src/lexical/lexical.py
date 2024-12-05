@@ -93,10 +93,6 @@ class Lexer:
         self.lexer.add('SKIMLITERAL', r'\d*\.\d+|\d+\.\d*')
         self.lexer.add('PINCHLITERAL', r'\d+')
 
-        # Remove the ignore for whitespace
-        # self.lexer.ignore(r'\s+')
-        
-        # Ignore single-line comments
         self.lexer.ignore(r'#.*')
 
     def tokenize(self, text):
@@ -106,20 +102,20 @@ class Lexer:
         self._add_tokens()
         lexer = self.lexer.build()
         
-        # Reset tokens and errors
+        
         self.tokens = []
         self.errors = []
         
-        # Create initial position
+       
         pos = Position(0, 0, 0, self.fn, text)
         
         try:
-            # Tokenize the input
+            # Tokenize
             for token in lexer.lex(text):
-                # Create a token with position information
+            
                 self.tokens.append((token.value, token.name, pos.copy()))
                 
-                # Advance position based on token
+                # positions
                 for char in token.value:
                     pos.advance(char)
         
@@ -145,7 +141,7 @@ class Lexer:
         for i, (value, token_type, pos) in enumerate(self.tokens):
             if token_type == 'IDENTIFIER':
                 # Check identifier length or other rules
-                if len(value) > 20:  # Example rule: max identifier length
+                if len(value) > 20: 
                     error = InvalidIdentifierError(
                         pos, 
                         pos, 
