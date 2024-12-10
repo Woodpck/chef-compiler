@@ -9,6 +9,7 @@ def index():
     error_tokens_text = ""
     error_syntax_text = ""
     error_semantic_text = ""
+    code = ""
     
     if request.method == "POST":
         code = request.form.get("code", "") 
@@ -32,7 +33,8 @@ def index():
         result=result,
         error_tokens_text=error_tokens_text,
         error_syntax_text=error_syntax_text,
-        error_semantic_text=error_semantic_text
+        error_semantic_text=error_semantic_text,
+        code=code 
     )
 
 if __name__ == '__main__':
