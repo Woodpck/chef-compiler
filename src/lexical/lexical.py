@@ -34,7 +34,7 @@ class Lexer:
             'for': 'FOR',
             'simmer': 'WHILE',
             'keepmix': 'KEEPMIX',
-            'spit': 'PAR',
+            'spit': 'SPIT',
             'yum': 'YUM',
             'bleh': 'BLEH',
             'dish': 'DISH',
@@ -78,8 +78,6 @@ class Lexer:
             r'-': 'MINUS',
             r'\*': 'STAR',
             r'/': 'SLASH',
-            r'\+\+': 'INCREMENT',
-            r'--': 'DECREMENT'
         }
         for sym, sym_token in symbols.items():
             self.lexer.add(sym_token, sym)
@@ -92,6 +90,7 @@ class Lexer:
         self.lexer.add('PASTALITERAL', r'\"(?:\\.|[^"\\])*\"')
         self.lexer.add('SKIMLITERAL', r'\d*\.\d+|\d+\.\d*')
         self.lexer.add('PINCHLITERAL', r'\d+')
+        self.lexer.add('BOOLITERAL',r'True,False')
 
         self.lexer.ignore(r'#.*')
 
@@ -102,11 +101,9 @@ class Lexer:
         self._add_tokens()
         lexer = self.lexer.build()
         
-        
         self.tokens = []
         self.errors = []
         
-       
         pos = Position(0, 0, 0, self.fn, text)
         
         try:
@@ -159,6 +156,40 @@ class Lexer:
                         f"Unterminated string literal: {value}"
                     )
                     self.errors.append(error)
+        
+        # New validation: Ensure code is between DINEIN and TAKEOUT
+        found_dinein = False
+        found_takeout = False
+        
+        for i, (value, token_type, pos) in enumerate(self.tokens):
+            if token_type == 'DINEIN':
+                found_dinein = True
+            
+            if token_type == 'TAKEOUT':
+                found_takeout = True
+            
+            # If tokens exist before DINEIN or after TAKEOUT, add an error
+            if not found_dinein and token_type not in ['WHITESPACE']:
+                self.errors.append(IllegalCharError(
+                    pos, 
+                    pos, 
+                    "Code must start with 'dinein' keyword"
+                ))
+            
+            if found_takeout and token_type not in ['WHITESPACE', 'TAKEOUT']:
+                self.errors.append(IllegalCharError(
+                    pos, 
+                    pos, 
+                    "Code must end with 'takeout' keyword"
+                ))
+        
+        # Additional check to ensure both DINEIN and TAKEOUT are present
+        if not found_dinein or not found_takeout:
+            self.errors.append(IllegalCharError(
+                pos, 
+                pos, 
+                "Code must be enclosed between 'dinein' and 'takeout' keywords"
+            ))
 
     def get_lexer(self):
         self._add_tokens()

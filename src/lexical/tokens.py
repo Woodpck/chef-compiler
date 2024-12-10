@@ -43,7 +43,7 @@ class TokenType(Enum):
     FOR = "for"
     WHILE = "simmer"
     KEEPMIX = "keepmix"
-    PAR = "spit"
+    SPIT = "spit"
     YUM = "yum"
     BLEH = "bleh"
     DISH = "dish"
