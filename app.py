@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from src.lexical.lexical import Lexer
+from src.lexical.lexical import LexicalAnalyzer
 
 app = Flask(__name__)
 
@@ -12,29 +12,30 @@ def index():
     code = ""
     
     if request.method == "POST":
-        code = request.form.get("code", "") 
+        code = request.form.get("code", "")  # Get the input code from the form
         action = request.form.get("action", "")
         
         if action == "lexical":
             try:
-                lexer = Lexer()
-                tokens, errors = lexer.tokenize(code)  # Tokenize the code
+                lexical_analyzer = LexicalAnalyzer()  # Create an instance of the Lexer class
+                tokens, errors = lexical_analyzer.tokenize(code)  # Tokenize the code
                 
-                result = [(token[0], token[1]) for token in tokens]
+                # The tokens are already in the correct format
+                result = tokens
                 
-                # error messages
+                # Convert errors to error messages
                 if errors:
-                    error_tokens_text = "\n".join([error.as_string() for error in errors])
+                    error_tokens_text = "\n".join(errors)
             except Exception as e:
                 error_tokens_text = f"Lexical Analysis Error: {str(e)}"
 
     return render_template(
-        "index.html",  
+        "index.html",  # Render the HTML template
         result=result,
+        code=code,  # Pass the original code back to the textarea
         error_tokens_text=error_tokens_text,
         error_syntax_text=error_syntax_text,
-        error_semantic_text=error_semantic_text,
-        code=code 
+        error_semantic_text=error_semantic_text
     )
 
 if __name__ == '__main__':
