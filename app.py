@@ -3,40 +3,36 @@ from src.lexical.lexical import LexicalAnalyzer
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
+def normalize_newlines(text):
+    """Normalize newline characters for cross-platform compatibility."""
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+@app.route("/", methods=["GET", "POST"])
 def index():
     result = []
     error_tokens_text = ""
-    error_syntax_text = ""
-    error_semantic_text = ""
     code = ""
-    
+
     if request.method == "POST":
-        code = request.form.get("code", "")  # Get the input code from the form
-        action = request.form.get("action", "")
-        
-        if action == "lexical":
+        code = normalize_newlines(request.form.get("code", ""))
+        action = request.form.get("action")
+
+        if action == "lexical" and code.strip():
+            analyzer = LexicalAnalyzer()
             try:
-                lexical_analyzer = LexicalAnalyzer()  # Create an instance of the Lexer class
-                tokens, errors = lexical_analyzer.tokenize(code)  # Tokenize the code
-                
-                # The tokens are already in the correct format
+                tokens = analyzer.tokenize(code)
                 result = tokens
-                
-                # Convert errors to error messages
-                if errors:
-                    error_tokens_text = "\n".join(errors)
+                error_tokens_text = "\n".join(analyzer.errors)
             except Exception as e:
-                error_tokens_text = f"Lexical Analysis Error: {str(e)}"
+                error_tokens_text = f"An error occurred: {e}"
 
     return render_template(
-        "index.html",  # Render the HTML template
+        "index.html",
+        code=code,
         result=result,
-        code=code,  # Pass the original code back to the textarea
         error_tokens_text=error_tokens_text,
-        error_syntax_text=error_syntax_text,
-        error_semantic_text=error_semantic_text
+        error_syntax_text="Feature coming soon!"
     )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
