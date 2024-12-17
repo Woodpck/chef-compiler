@@ -222,4 +222,28 @@
         </div>
     </main>
 </body>
+<script>
+    document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key !== 'Tab') return;
+            
+            e.preventDefault();
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const value = textarea.value;
+            
+            if (start === end) {
+                // Insert tab at cursor
+                textarea.value = value.slice(0, start) + '\t' + value.slice(end);
+                textarea.setSelectionRange(start + 1, start + 1);
+            } else {
+                // Indent selected lines
+                const selectedText = value.substring(start, end);
+                const indentedText = selectedText.replace(/^/gm, '\t');
+                textarea.value = value.slice(0, start) + indentedText + value.slice(end);
+                textarea.setSelectionRange(start, start + indentedText.length);
+            }
+        });
+    });
+</script>
 </html>

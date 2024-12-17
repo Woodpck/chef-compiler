@@ -33,7 +33,7 @@ class LexicalAnalyzer:
         self.delim17 = {';', '}', ',', ' '  , '\n'} | self.alpha_small   
 
         self.com_delim = {'\n'}
-        self.pasta_delim = {',', ';', ' ', ':', ')', '}', '+'}
+        self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+'}
         self.opdelim = {'+', '-', '*', '/', '%', '**'}
         self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '='} | self.opdelim
 
@@ -2544,7 +2544,7 @@ class LexicalAnalyzer:
 
 if __name__ == "__main__":
     try:
-        with open("program", "r") as file:
+        with open("src/lexical/program", "r") as file:
             code = file.read()
             code = code.replace("    ", "\t")
     except FileNotFoundError:
