@@ -210,6 +210,11 @@ class LexicalAnalyzer:
                     elif c == 'o':
                         state = 6
                         lexeme += c
+                    elif c in self.id_delim:  # If we see a valid delimiter, it's a single-char identifier
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -304,6 +309,11 @@ class LexicalAnalyzer:
                     elif c == 'h':
                         state = 15
                         lexeme += c
+                    elif c in self.id_delim: 
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -430,6 +440,11 @@ class LexicalAnalyzer:
                     elif c == 'i':
                         state = 30
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -608,6 +623,11 @@ class LexicalAnalyzer:
                     if c == 'l':
                         state = 40
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -665,6 +685,11 @@ class LexicalAnalyzer:
                     elif c == 'u':
                         state = 52
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -785,6 +810,11 @@ class LexicalAnalyzer:
                     if c == 'u':
                         state = 57
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -858,6 +888,11 @@ class LexicalAnalyzer:
                     if c == 'e':
                         state = 64
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -945,6 +980,11 @@ class LexicalAnalyzer:
                     elif c == 'i':
                         state = 76
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -1028,6 +1068,11 @@ class LexicalAnalyzer:
                     elif c == 'i':
                         state = 85
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -1141,6 +1186,11 @@ class LexicalAnalyzer:
                     if c == 'e':
                         state = 91
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -1223,6 +1273,11 @@ class LexicalAnalyzer:
                     elif c == 'p':
                         state = 113
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -1427,6 +1482,11 @@ class LexicalAnalyzer:
                     if c == 'a':
                         state = 118
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -1554,6 +1614,11 @@ class LexicalAnalyzer:
                     if c == 'u':
                         state = 130
                         lexeme += c
+                    elif c in self.id_delim:
+                        tokens.append(('IDENTIFIER', lexeme))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
                     elif c and (c.isalpha() or c.isdigit() or c == '_'):
                         state = 232
                         lexeme += c
@@ -2484,10 +2549,7 @@ class LexicalAnalyzer:
                             self.stepBack()
                     
                     else:
-                        if c is None:
-                            self.errors.append(f"Line {line}: Identifier '{lexeme}' Invalid Delimiter.")
-                        else:
-                            self.errors.append(f"Line {line}: Identifier '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
+                        self.errors.append(f"Line {line}: Identifier '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
                         state = 0
                 
                 case 233:
