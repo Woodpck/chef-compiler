@@ -6,15 +6,16 @@ class LexicalAnalyzer:
         self.all_num = set("0123456789")
         self.all_alpha = self.alpha_small | self.alpha_big
         self.alpha_num = self.all_alpha | self.all_num
-        self.bool_delim = {';' , ' ' , ')', ',',}
+        self.bool_delim = {';' , ' ' , ')', ',', None}
         self.dt_delim = {' ', '\t', None}
-        self.space_delim = {' '}
-        self.semicolon_delim = {';'}
-        self.colon_delim = {':'}
-        self.newline_delim ={'\n'}
+        self.space_delim = {' ', None}
+        self.semicolon_delim = {';', None}
+        self.colon_delim = {':', None}
+        self.newline_delim ={'\n', None}
         self.oparan_delim = {'('}
+        self.delim0 = {'()'} | self.space_delim
         
-        self.delim0 = {' ', '('}
+     
         self.delim1 = {' ', '"', '(', '~'} | self.alpha_num
         self.delim2 = {' ', '{'}
         self.delim3 = {' ', '(', '~'} | self.alpha_num
