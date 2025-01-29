@@ -23,7 +23,7 @@ class LexicalAnalyzer:
         self.delim6 = {'"', '~', '\'', ' '} | self.alpha_num
         self.delim7 = {'('} | self.alpha_num
         self.delim8 = {' ', '~', '"', '\'', '('} | self.alpha_num
-        self.num_delim = {' ', '?', '+', '>', '-', ';', ')', '<', '*', '/', '=', '%', ']', ',' }
+        self.num_delim = {' ', '?', '+', '>', '-', ';', ')', '<', '*', '/', '=', '%', ']', ',','{','}', }
 
         self.delim12 = {')', '!', '\'', '"', ' '} | self.alpha_num
         self.delim13 = {';', '{', ')', '<', '>', '=', '?', '&', '+', '-', '/', '*', '%', ' ', '!'}
@@ -37,10 +37,10 @@ class LexicalAnalyzer:
         self.opdelim = {'+', '-', '*', '/', '%', '**'}
         self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '='} | self.opdelim
 
-
+        self.quotes = {'"', '“', '”'}
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
         self.asciicmnt = {{chr(i) for i in range(32, 127) if chr(i)} not in {'/', '-'}, '\t'} 
-        self.asciistr = {chr(i) for i in range(32, 127) if chr(i) != '"'} | {'\t', '\n', '\\'}
+        self.asciistr = ({chr(i) for i in range(32, 127) if chr(i) not in self.quotes } | {'\t', '\n', '\\', '“', '”'})
         
         self.errors = []
         self.code = ""
@@ -2248,6 +2248,12 @@ class LexicalAnalyzer:
                     elif c == '"':
                         state = 206
                         lexeme += c
+                    elif c == '“':
+                        state = 206
+                        lexeme += c
+                    elif c == '”':
+                        state = 206
+                        lexeme += c
                     else:
                         self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
                         state = 0
@@ -2279,9 +2285,6 @@ class LexicalAnalyzer:
                 case 209:
                     if c in self.all_num:
                         state = 210
-                        lexeme += c
-                    elif c == '.':
-                        state = 219
                         lexeme += c
                     elif c == '.':
                         state = 219
