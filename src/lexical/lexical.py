@@ -6,8 +6,8 @@ class LexicalAnalyzer:
         self.all_num = set("0123456789")
         self.all_alpha = self.alpha_small | self.alpha_big
         self.alpha_num = self.all_alpha | self.all_num
-        self.bool_delim = {';' , ' ' , ')', ','}
-        self.dt_delim = {' ', '\t'}
+        self.bool_delim = {';' , ' ' , ')', ',',}
+        self.dt_delim = {' ', '\t', None}
         self.space_delim = {' '}
         self.semicolon_delim = {';'}
         self.colon_delim = {':'}
@@ -35,7 +35,8 @@ class LexicalAnalyzer:
         self.com_delim = {'\n'}
         self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+'}
         self.opdelim = {'+', '-', '*', '/', '%', '**'}
-        self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '='} | self.opdelim
+        self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '=', None} | self.opdelim
+
 
         self.quotes = {'"', '“', '”'}
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
@@ -2621,4 +2622,4 @@ if __name__ == "__main__":
 
     analyzer.display_tokens(tokens)
     analyzer.display_errors()
-    print("\nEnd of program analysis.\n")   
+    print("\nEnd of program analysis.\n")
