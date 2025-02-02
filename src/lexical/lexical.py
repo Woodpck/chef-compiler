@@ -6,38 +6,39 @@ class LexicalAnalyzer:
         self.all_num = set("0123456789")
         self.all_alpha = self.alpha_small | self.alpha_big
         self.alpha_num = self.all_alpha | self.all_num
-        self.bool_delim = {';' , ' ' , ')', ',', None}
+        self.bool_delim = {';' , ' ' , ',',')', None}
         self.dt_delim = {' ', '\t', None}
         self.space_delim = {' ', None}
         self.semicolon_delim = {';', None}
         self.colon_delim = {':', None}
         self.newline_delim ={'\n', None}
-        self.oparan_delim = {'('}
+        self.oparan_delim = {'(', None}
         self.delim0 = {'()'} | self.space_delim
         
-     
-        self.delim1 = {' ', '"', '(', '~'} | self.alpha_num
+        self.bool_delim = {';', ' ', ')', ',', '(', '<', '>', '&', '|', None}
+        self.operator_delim = {'>', '<', '=', '&', '|', '+', '-', '*', '/', '%'}
+        
+        self.delim1 = {' ', '"', '(', '~', None} | self.alpha_num
         self.delim2 = {' ', '{',None}
-        self.delim3 = {' ', '(', '~'} | self.alpha_num
-        self.delim4 = {';', ')'} | self.alpha_num
-        self.delim5 = {' ', '!', '('} | self.alpha_num
+        self.delim3 = {' ', '(', '~', None} | self.alpha_num
+        self.delim4 = {';', ')', None} | self.alpha_num
+        self.delim5 = {' ', '!', '(', None} | self.alpha_num
         self.delim6 = {'"', '~', '\'', ' '} | self.alpha_num
-        self.delim7 = {'('} | self.alpha_num
-        self.delim8 = {' ', '~', '"', '\'', '('} | self.alpha_num
+        self.delim7 = {'(', None} | self.alpha_num
+        self.delim8 = {' ', '~', '"', '\'', '(', None} | self.alpha_num
         self.num_delim = {' ', '?', '+', '>', '-', ';', ')', '<', '*', '/', '=', '%', ']', ',','{','}'}
 
-        self.delim12 = {')', '!', '\'', '"', ' '} | self.alpha_num
-        self.delim13 = {';', '{', ')', '<', '>', '=', '?', '&', '+', '-', '/', '*', '%', ' ', '!'}
+        self.delim12 = {')', '!', '\'', '"', ' ', '(', None} | self.alpha_num
+        self.delim13 = {';', '{', ')', '<', '>', '=', '?', '&', '+', '-', '/', '*', '%', ' ', '!', None}
         self.delim14 = {']', ' '} | self.alpha_num
-        self.delim15 = {'=', ';', ' ', '\n', '['}
+        self.delim15 = {'=', ';', ' ', '\n', '[',"(", None}
         self.delim16 = {'\'', '"', '~', ' ', '\n', '{'} | self.alpha_num
         self.delim17 = {';', '}', ',', ' '  , '\n', None} | self.alpha_small   
 
         self.com_delim = {'\n'}
-        self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+'}
+        self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+', None}
         self.opdelim = {'+', '-', '*', '/', '%', '**'}
         self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '=', None} | self.opdelim
-
 
         self.quotes = {'"', '“', '”'}
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
