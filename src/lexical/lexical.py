@@ -42,7 +42,7 @@ class LexicalAnalyzer:
 
         self.quotes = {'"', '“', '”'}
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
-        self.asciicmnt = {{chr(i) for i in range(32, 127) if chr(i)} not in {'/', '-'}, '\t'} 
+        self.asciicmnt = {chr(i) for i in range(32, 127) if chr(i) not in {'/', '-'}} | {'\t', '\n'} 
         self.asciistr = ({chr(i) for i in range(32, 127) if chr(i) not in self.quotes } | {'\t', '\n', '\\', '“', '”'})
         
         self.errors = []
@@ -1988,21 +1988,25 @@ class LexicalAnalyzer:
                     state = 0
                     
                 case 174:
-                    if c in self.asciicmnt:
+                    if c == '\n' or c is None:
+                        tokens.append((lexeme, "singlecomment"))
+                        state = 0
+                    else:
                         state = 174
                         lexeme += c
-                    elif c in self.com_delim:
-                        state = 175
-                        if c is not None:
-                            self.stepBack()
-                    else:
-                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
-                        state = 0
                         
                 case 175:
-                    if c is not None:
-                        self.stepBack()
-                    state = 0
+                    if c in self.asciicmnt:
+                        state = 175
+                        lexeme += c
+                    elif c in self.com_delim:
+                        tokens.append((lexeme, "singlecomment"))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
+                    else:
+                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
+                        state = 0 
                     
                 case 176:
                     if c in self.asciicmnt:
@@ -2019,18 +2023,17 @@ class LexicalAnalyzer:
                     if c == '/':
                         state = 178
                         lexeme += c
+                        tokens.append((lexeme, "multicomment"))
                     else:
                         self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
-                        state = 0
+                        state = 0  
+
                         
                 case 178:
-                    if c in self.com_delim:
-                        state = 179
-                        if c is not None:
-                            self.stepBack()
-                    else:
-                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
-                        state = 0
+                    if c is not None:
+                        self.stepBack()
+                    state = 0
+
                         
                 case 179:
                     if c is not None:
