@@ -576,7 +576,7 @@ class LexicalAnalyzer:
                         state = 0
                     
                 case 34:
-                    if c in self.newline_delim:
+                    if c in self.newline_delim or c.isspace():
                         state = 35
                         if c is not None:
                             self.stepBack()
@@ -586,6 +586,7 @@ class LexicalAnalyzer:
                     else:
                         self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
                         state = 0
+                
                         
                 case 35:
                     tokens.append((lexeme, "dinein"))
@@ -1992,7 +1993,7 @@ class LexicalAnalyzer:
                         tokens.append((lexeme, "singlecomment"))
                         state = 0
                     else:
-                        state = 174
+                        state = 174 
                         lexeme += c
                         
                 case 175:
