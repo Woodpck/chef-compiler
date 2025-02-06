@@ -1839,7 +1839,7 @@ class LexicalAnalyzer:
                         state = 0
                         
                 case 155:
-                    tokens.append((lexeme, "?"))
+                    tokens.append((lexeme, "??"))
                     if c is not None:
                         self.stepBack()
                     state = 0
