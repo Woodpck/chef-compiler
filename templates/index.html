@@ -38,7 +38,13 @@
         <div class="column error-sections">
             <div class="error-block">
                 <h2>Lexical Errors</h2>
-                <p>{{ error_tokens_text }}</p>
+                {% if code %}  <!-- Hide text when to inputs -->
+                    {% if error_tokens_text %}
+                        <p>{{ error_tokens_text }}</p>
+                {% else %}
+                        <p>No Lexical Errors</p>
+                {% endif %}
+                {% endif %}
             </div>
             <div class="error-block">
                 <h2>Soon</h2>

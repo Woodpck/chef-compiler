@@ -2595,9 +2595,6 @@ class LexicalAnalyzer:
                     state = 0
                     
         return tokens
-     
-    
-    
 
 
     def display_tokens(self, tokens):
