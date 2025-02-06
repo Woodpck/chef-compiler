@@ -214,7 +214,7 @@ class LexicalAnalyzer:
                         state = 6
                         lexeme += c
                     elif c in self.id_delim:  # If we see a valid delimiter, it's a single-char identifier
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -313,7 +313,7 @@ class LexicalAnalyzer:
                         state = 15
                         lexeme += c
                     elif c in self.id_delim: 
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -444,7 +444,7 @@ class LexicalAnalyzer:
                         state = 30
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -628,7 +628,7 @@ class LexicalAnalyzer:
                         state = 40
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -690,7 +690,7 @@ class LexicalAnalyzer:
                         state = 52
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -815,7 +815,7 @@ class LexicalAnalyzer:
                         state = 57
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -893,7 +893,7 @@ class LexicalAnalyzer:
                         state = 64
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -985,7 +985,7 @@ class LexicalAnalyzer:
                         state = 76
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1073,7 +1073,7 @@ class LexicalAnalyzer:
                         state = 85
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1191,7 +1191,7 @@ class LexicalAnalyzer:
                         state = 91
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1278,7 +1278,7 @@ class LexicalAnalyzer:
                         state = 113
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1487,7 +1487,7 @@ class LexicalAnalyzer:
                         state = 118
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1619,7 +1619,7 @@ class LexicalAnalyzer:
                         state = 130
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
