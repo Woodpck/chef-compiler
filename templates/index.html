@@ -23,7 +23,7 @@
                 <textarea name="code" placeholder="Enter your code here...">{{ code }}</textarea>
                 <div class="button-container">
                     <button type="submit" name="action" value="lexical">Lexical Analyzer</button>
-                    <button type="submit" name="action" value="soon">Soon</button>
+                    <button type="submit" name="action" value="soon">Syntax Analyzer</button>
                     <button type="submit" name="action" value="soon">Soon</button>
                 </div>
             </form>
@@ -38,7 +38,7 @@
         <div class="column error-sections">
             <div class="error-block">
                 <h2>Lexical Errors</h2>
-                {% if code %}  <!-- Hide text when to inputs -->
+                {% if code %} 
                     {% if error_tokens_text %}
                         <p>{{ error_tokens_text }}</p>
                 {% else %}
@@ -47,8 +47,14 @@
                 {% endif %}
             </div>
             <div class="error-block">
-                <h2>Soon</h2>
-                <p>{{ error_syntax_text }}</p>
+                <h2>Syntax Errors</h2>
+                {% if code %}  
+                    {% if error_tokens_text %}
+                        <p>{{ error_tokens_text }}</p>
+                {% else %}
+                        <p>Syntax Errors</p>
+                {% endif %}
+                {% endif %}
             </div>
             <div class="error-block">
                 <h2>Soon</h2>
