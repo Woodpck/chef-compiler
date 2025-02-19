@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from src.lexical.lexical import LexicalAnalyzer
+from src.syntax.parser import Parser
 
 app = Flask(__name__)
 
@@ -11,6 +12,7 @@ def normalize_newlines(text):
 def index():
     result = []
     error_tokens_text = ""
+    error_syntax_text =""
     code = ""
 
     if request.method == "POST":
@@ -31,7 +33,7 @@ def index():
         code=code,
         result=result,
         error_tokens_text=error_tokens_text,
-        error_syntax_text="Feature coming soon!"
+        error_syntax_text=error_syntax_text
     )
 
 if __name__ == "__main__":
