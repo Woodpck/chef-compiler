@@ -90,7 +90,7 @@ class Lexer:
         self.lexer.add('PASTALITERAL', r'\"(?:\\.|[^"\\])*\"')
         self.lexer.add('SKIMLITERAL', r'\d*\.\d+|\d+\.\d*')
         self.lexer.add('PINCHLITERAL', r'\d+')
-        self.lexer.add('BOOLITERAL',r'True,False')
+        self.lexer.add('BOOLLITERAL',r'True,False')
 
         self.lexer.ignore(r'#.*')
 

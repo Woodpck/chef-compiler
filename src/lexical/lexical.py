@@ -44,8 +44,8 @@ class LexicalAnalyzer:
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
         self.asciicmnt = {chr(i) for i in range(32, 127) if chr(i) not in {'/', '-'}} | {'\t', '\n'} 
         self.asciistr = ({chr(i) for i in range(32, 127) if chr(i) not in self.quotes } | {'\t', '\n', '\\', '“', '”'})
-        self.nepinch('nepinch', r'~\d*\.\d+|!\d+\.\d*')
-        self.neskim('neskim', r'~\d+')
+        #self.neskim('nepinch', r'~\d*\.\d+|!\d+\.\d*')
+        #self.neskim('neskim', r'~\d+')
         
         self.errors = []
         self.code = ""

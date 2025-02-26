@@ -18,42 +18,39 @@
         </nav>
     </header>
     <main class="three-column-layout">
+        <!-- Input Column -->
         <div class="column input-area">
             <form method="POST">
                 <textarea name="code" placeholder="Enter your code here...">{{ code }}</textarea>
                 <div class="button-container">
                     <button type="submit" name="action" value="lexical">Lexical Analyzer</button>
-                    <button type="submit" name="action" value="soon">Syntax Analyzer</button>
+                    <button type="submit" name="action" value="syntax">Syntax Analyzer</button>
                     <button type="submit" name="action" value="soon">Soon</button>
                 </div>
             </form>
         </div>
-
-        <div class="output">
-            {% for line in output %}
-                {{ line }}<br>
-            {% endfor %}
-        </div>
-
+        
         <div class="column error-sections">
             <div class="error-block">
                 <h2>Lexical Errors</h2>
                 {% if code %} 
                     {% if error_tokens_text %}
                         <p>{{ error_tokens_text }}</p>
-                {% else %}
+                    {% else %}
                         <p>No Lexical Errors</p>
-                {% endif %}
+                    {% endif %}
                 {% endif %}
             </div>
             <div class="error-block">
                 <h2>Syntax Errors</h2>
-                {% if code %}  
-                    {% if error_syntax_text %}
-                        <p>{{ error_syntax_text }}</p>
-                {% else %}
-                        <p>Syntax Errors</p>
-                {% endif %}
+                {% if code %}
+                    {% if output and output|length > 0 %}
+                        {% for line in output %}
+                            <p>{{ line }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>No Syntax Errors</p>
+                    {% endif %}
                 {% endif %}
             </div>
             <div class="error-block">
@@ -61,7 +58,8 @@
                 <p>{{ error_syntax_text }}</p>
             </div>
         </div>
-
+        
+        <!-- Result Column -->
         <div class="column result-table">
             <h2>Lexical and Token Table</h2>
             <table>
@@ -77,9 +75,11 @@
                             <td>{{ lexeme }}</td>
                             <td>{{ token }}</td>
                         </tr>
-                    {% else %}
+                    {% endfor %}
+                    {% for lexeme, token in syntax_tokens %}
                         <tr>
-                            <td colspan="2">No results yet</td>
+                            <td>{{ lexeme }}</td>
+                            <td>{{ token }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -98,11 +98,9 @@
             const value = textarea.value;
             
             if (start === end) {
-                // Insert tab at cursor
                 textarea.value = value.slice(0, start) + '\t' + value.slice(end);
                 textarea.setSelectionRange(start + 1, start + 1);
             } else {
-                // Indent selected lines
                 const selectedText = value.substring(start, end);
                 const indentedText = selectedText.replace(/^/gm, '\t');
                 textarea.value = value.slice(0, start) + indentedText + value.slice(end);
