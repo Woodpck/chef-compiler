@@ -32,13 +32,10 @@ def index():
         elif action == "syntax" and code.strip():
             analyzer = LexicalAnalyzer()
             try:
-              
                 lexical_tokens = analyzer.tokenize(code)
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
                 
-               
                 if error_tokens_text:
-            
                     result = lexical_tokens
                     error_syntax_text = "Cannot proceed with Syntax Analysis due to Lexical Errors"
                 else:
@@ -59,8 +56,9 @@ def index():
                     if success:
                         output = ["Syntax Analysis completed successfully"]
                         output.append("Parse Tree:")
-                        output.append(str(parser.parse_tree))
+                        output.append(str(parser.parse_tree)) 
                     
+                    # Check for syntax errors
                     if errors:
                         error_syntax_text = "\n".join(errors)
                     elif not success:

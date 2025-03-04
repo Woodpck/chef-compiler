@@ -326,6 +326,10 @@ class LL1Parser:
         node_stack = [self.parse_tree]  # Maintain node stack
         self.errors = []
 
+        print("Input Tokens:")  # Debugging
+        for token in self.input_tokens:
+            print(token)
+
         while self.stack:
             top = self.stack.pop()
             current_lexeme = self.input_tokens[self.index][0]
@@ -333,7 +337,7 @@ class LL1Parser:
             current_line = self.input_tokens[self.index][2]  # Line number
             parent_node = node_stack.pop() if node_stack else None
 
-            print(f"Stack: {self.stack}, Top: {top}, Token: {current_token}")  # Debugging line
+            print(f"Stack: {self.stack}, Top: {top}, Token: {current_token}")  # Debugging
 
             if top == "λ":  # Handle lambda (empty production)
                 continue  # Skip lambda and continue processing the stack
@@ -399,9 +403,9 @@ class LL1Parser:
 
 # Run Parser
 parser = LL1Parser(cfg, parse_table, follow_set)
-tokens = [ ("dinein", "dinein", 1), 
-    ("chef", "chef", 2)
-]
+tokens = []
+
+
 errors = parser.parse(tokens)
 print((errors))
 
