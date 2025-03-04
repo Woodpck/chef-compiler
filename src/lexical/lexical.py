@@ -51,15 +51,15 @@ class LexicalAnalyzer:
         self.line_number = 1
 
     def nextChar(self):
-            if self.index < len(self.code):
-                c = self.code[self.index]
-                self.index += 1
-                return c
-            return None
+        if self.index < len(self.code):
+            c = self.code[self.index]
+            self.index += 1
+            return c
+        return None
         
     def stepBack(self):
-            if self.index > 0:
-                self.index -= 1
+        if self.index > 0:
+            self.index -= 1
 
     def tokenize(self, code):
         self.code = code
@@ -120,16 +120,9 @@ class LexicalAnalyzer:
                     elif c == 'y':
                         state = 129
                         lexeme += 'y'
-                    elif c == ' ':
+                    elif c in self.whitespace:  # Handle all whitespace characters
                         state = 133
-                        lexeme += ' '
-                    elif c == '\t':
-                        state = 135
-                        lexeme += '\\t'
-                    elif c == '\n':
-                        state = 137
-                        lexeme += "newline"
-                        line += 1
+                        lexeme += c
                     elif c == '-':
                         state = 139
                         lexeme += '-'
@@ -1659,7 +1652,7 @@ class LexicalAnalyzer:
                         self.stepBack()
                     state = 0
                     
-                case 133:
+                case 133:  # Handle all whitespace characters
                     if c is None or c in self.ascii_delim:
                         state = 134
                         if c is not None:
@@ -1669,7 +1662,7 @@ class LexicalAnalyzer:
                         state = 0
                         
                 case 134:
-                    tokens.append((" ", " "))
+                    tokens.append((lexeme, " "))
                     if c is not None:
                         self.stepBack()
                     state = 0
