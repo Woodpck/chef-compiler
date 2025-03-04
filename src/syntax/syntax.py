@@ -399,8 +399,8 @@ class LL1Parser:
 
 # Run Parser
 parser = LL1Parser(cfg, parse_table, follow_set)
-tokens = [("dinein", "dinein", 1),
-          ("chef", "chef", 1)
+tokens = [ ("dinein", "dinein", 1), 
+    ("chef", "chef", 2)
 ]
 errors = parser.parse(tokens)
 print((errors))

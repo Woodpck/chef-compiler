@@ -30,47 +30,51 @@ def index():
                 error_tokens_text = f"An error occurred: {e}"
 
         elif action == "syntax" and code.strip():
+            analyzer = LexicalAnalyzer()
             try:
                 # Get lexical tokens first for syntax analysis
-                analyzer = LexicalAnalyzer()
                 lexical_tokens = analyzer.tokenize(code)
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
                 
-                # Convert lexical tokens to the format expected by the syntax parser
-                # Assuming each token in lexical_tokens is (lexeme, token)
-                syntax_tokens = []
-                for i, (lexeme, token) in enumerate(lexical_tokens):
-                    # Add line number (using 1 as a placeholder if not available)
-                    # You might want to extract actual line numbers from your lexer if possible
-                    syntax_tokens.append((lexeme, token, 1))
-                
-                # Store the original tokens for display
-                result = lexical_tokens
-                
-                # Create the Parser instance with required parameters
-                parser = LL1Parser(cfg, parse_table, follow_set)
-                
-                # Parse using the tokens from lexical analysis
-                success, errors = parser.parse(syntax_tokens)
-                
-                # If parse was successful, prepare output
-                if success:
-                    output = ["Syntax Analysis completed successfully"]
-                    output.append("Parse Tree:")
-                    output.append(str(parser.parse_tree))  # Use the __repr__ method of ParseTreeNode
-                
-                # Check for syntax errors
-                if errors:
-                    error_syntax_text = "\n".join(errors)
-                elif not success:
-                    error_syntax_text = "Syntax analysis failed with no specific errors."
+                # Check if there are any lexical errors before proceeding with syntax analysis
+                if error_tokens_text:
+                    # If there are lexical errors, do not proceed with syntax analysis
+                    result = lexical_tokens
+                    error_syntax_text = "Cannot proceed with Syntax Analysis due to Lexical Errors"
+                else:
+                    # Convert lexical tokens to the format expected by the syntax parser
+                    # Each token is (lexeme, token_type, line_number)
+                    syntax_tokens = []
+                    for i, (lexeme, token) in enumerate(lexical_tokens, 1):
+                        syntax_tokens.append((lexeme, token, i))
+                    
+                    # Store the original tokens for display
+                    result = lexical_tokens
+                    
+                    # Create the Parser instance with required parameters
+                    parser = LL1Parser(cfg, parse_table, follow_set)
+                    
+                    # Parse using the tokens from lexical analysis
+                    success, errors = parser.parse(syntax_tokens)
+                    
+                    # If parse was successful, prepare output
+                    if success:
+                        output = ["Syntax Analysis completed successfully"]
+                        output.append("Parse Tree:")
+                        output.append(str(parser.parse_tree))  # Use the __repr__ method of ParseTreeNode
+                    
+                    # Check for syntax errors
+                    if errors:
+                        error_syntax_text = "\n".join(errors)
+                    elif not success:
+                        error_syntax_text = "Syntax analysis failed with no specific errors."
                     
             except Exception as e:
                 import traceback
-                error_syntax_text = f"Syntax Analysis Error: {e}"
+                error_tokens_text = f"Lexical Analysis Error: {e}"
                 error_trace = traceback.format_exc()
-                # Add the error trace to the syntax error text
-                error_syntax_text += "\n" + error_trace
+                # Add the error trace to the tokens error text
+                error_tokens_text += "\n" + error_trace
 
     return render_template(
         "index.html",
