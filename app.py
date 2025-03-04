@@ -32,18 +32,16 @@ def index():
         elif action == "syntax" and code.strip():
             analyzer = LexicalAnalyzer()
             try:
-                # Get lexical tokens first for syntax analysis
+              
                 lexical_tokens = analyzer.tokenize(code)
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
                 
-                # Check if there are any lexical errors before proceeding with syntax analysis
+               
                 if error_tokens_text:
-                    # If there are lexical errors, do not proceed with syntax analysis
+            
                     result = lexical_tokens
                     error_syntax_text = "Cannot proceed with Syntax Analysis due to Lexical Errors"
                 else:
-                    # Convert lexical tokens to the format expected by the syntax parser
-                    # Each token is (lexeme, token_type, line_number)
                     syntax_tokens = []
                     for i, (lexeme, token) in enumerate(lexical_tokens, 1):
                         syntax_tokens.append((lexeme, token, i))
@@ -61,9 +59,8 @@ def index():
                     if success:
                         output = ["Syntax Analysis completed successfully"]
                         output.append("Parse Tree:")
-                        output.append(str(parser.parse_tree))  # Use the __repr__ method of ParseTreeNode
+                        output.append(str(parser.parse_tree))
                     
-                    # Check for syntax errors
                     if errors:
                         error_syntax_text = "\n".join(errors)
                     elif not success:
@@ -73,7 +70,6 @@ def index():
                 import traceback
                 error_tokens_text = f"Lexical Analysis Error: {e}"
                 error_trace = traceback.format_exc()
-                # Add the error trace to the tokens error text
                 error_tokens_text += "\n" + error_trace
 
     return render_template(
