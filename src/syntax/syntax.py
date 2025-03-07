@@ -1,11 +1,16 @@
+class SyntaxAnalyzer:
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.errors = []
 cfg = {
-    "<program>": [["dinein", "\n", "<global_dec>", "<function>", "chef", "pinch", "dish", "(", ")", "{", "<local_dec>", "<statement_block>", "spit", "0", ";", "}", "\n" "takeout"]],
+
+    "<program>": [["dinein", "<global_dec>", "<function>", "chef", "pinch", "dish", "(", ")", "{", "<local_dec>", "<statement_block>", "spit", "pinchliterals", ";", "}", "takeout"]],
 	
     "<global_dec>": [["<declarations>", "<global_dec>"],
 					["λ"]],
     
-	"<declarations>": [["<data_type>", "id", "<dec_or_init>", ";"],
-			["recipe", "<data_type2>", "id", "[", "pinchliterals", "]", "<elements>", ";"]],
+	"<declarations>": [["<data_type>", "identifier", "<dec_or_init>", ";"],
+			["recipe", "<data_type2>", "identifier", "[", "pinchliterals", "]", "<elements>", ";"]],
  
 	"<data_type>": [["pinch"],
                  	["skim"],
@@ -19,7 +24,7 @@ cfg = {
 	"<dec_or_init>": [["=", "<literals>", "<next_dec_or_init>"],
                    	["<next_dec_or_init>"]],
  
-	"<next_dec_or_init>": [[",", "id", "<dec_or_init>"],
+	"<next_dec_or_init>": [[",", "identifier", "<dec_or_init>"],
                         ["λ"]],
  
 	"<literals>": [["pinchliterals"],
@@ -43,32 +48,32 @@ cfg = {
 	"<function>": [["<function_definition>", "<function>"],
 				["λ"]],
  
-	"<function_definition>": [["full", "<data_type>", "id", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "spit", "<expression>", ";", "}"],
-						["hungry", "id", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "}", ";"]],
+	"<function_definition>": [["full", "<data_type>", "identifier", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "spit", "<expression>", ";", "}"],
+						["hungry", "identifier", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "}", ";"]],
  
-	"<parameters>": [["<data_type>", "id", "<param_tail>"],
+	"<parameters>": [["<data_type>", "identifier", "<param_tail>"],
 					["λ"]],
  
-	"<param_tail>": [[",","<data_type>", "id", "<param_tail>"],
+	"<param_tail>": [[",","<data_type>", "identifier", "<param_tail>"],
                   	["λ"]],
  
     "<local_dec>": [["<local_declarations>", "<local_dec>"],
                     ["λ"]],
     
-	"<local_declarations>": [["<data_type>", "id", "<dec_or_init>", ";"],
-			["recipe", "<data_type2>", "id", "[", "pinchliterals", "]", "<elements>", ";"]],
+	"<local_declarations>": [["<data_type>", "identifier", "<dec_or_init>", ";"],
+			["recipe", "<data_type2>", "identifier", "[", "pinchliterals", "]", "<elements>", ";"]],
  
     "<statement_block>": [["<statement>", "<statement_block>"],
                     ["λ"]],
     
-    "<statement>": [["id", "<statement_id_tail>"],
-                    ["<unary_op>", "id", ";"],
+    "<statement>": [["identifier", "<statement_identifier_tail>"],
+                    ["<unary_op>", "identifier", ";"],
                     ["<conditional_statement>"],
                     ["<looping_statement>"],
                     ["serve", "(", "<value>", "<serve_tail>", ")", ";"],
-                    ["make", "(", "id", ")", ";"]],
+                    ["make", "(", "identifier", ")", ";"]],
     
-    "<statement_id_tail>": [["(", "<argument_list>", ")", ";"],
+    "<statement_identifier_tail>": [["(", "<argument_list>", ")", ";"],
                             ["<assignment_op>", "<expression>", ";"],
                             ["[", "pinchliterals", "]", "<assignment_op>", "<arithmetic_exp>", ";"],
                             ["<unary_op>", ";"]],
@@ -118,14 +123,14 @@ cfg = {
                             ["%"]],
     
     "<value>": [["<literals>"],
-                ["id", "<value_id_tail>"]],
+                ["identifier", "<value_identifier_tail>"]],
     
-    "<value_id_tail>": [["(", "<argument_list>", ")"],
+    "<value_identifier_tail>": [["(", "<argument_list>", ")"],
                 ["[", "pinchliterals", "]"],
                 ["λ"]],
     
     "<value2>": [["<literals2>"],
-                ["id", "<value_id_tail>"]],
+                ["identifier", "<value_identifier_tail>"]],
     
 	"<assignment_op>": [["="],
 				["+="],
@@ -169,15 +174,15 @@ cfg = {
     "<default_block>": [["default", ":", "<statement_block>", "chop", ";"],
                        ["λ"]],
     
-    "<looping_statement>": [["for", "(", "<pinch_opt>", "id", "=", "<value2>", ";", "<condition>", ";", "<inc_dec>", ")", "{", "<statement_block>", "}"],
+    "<looping_statement>": [["for", "(", "<pinch_opt>", "identifier", "=", "<value2>", ";", "<condition>", ";", "<inc_dec>", ")", "{", "<statement_block>", "}"],
                             ["simmer" , "(", "<condition>", ")", "{", "<statement_block>", "}"],
                             ["keepmix", "{", "<statement_block>", "}", "simmer", "(", "<condition>", ")"]],        
                 
     "<pinch_opt>": [["pinch"],
                     ["λ"]],
     
-    "<inc_dec>": [["id", "<unary_op>"],
-                  ["<unary_op>", "id"]],
+    "<inc_dec>": [["identifier", "<unary_op>"],
+                  ["<unary_op>", "identifier"]],
     
     "<serve_tail>": [["+", "<value>", "<serve_tail>"],
                      ["λ"]]
@@ -319,73 +324,129 @@ class LL1Parser:
         self.errors = []
 
     def parse(self, tokens):
-        self.stack = ["$", "<program>"]  # Start with end marker and start symbol
-        self.input_tokens = tokens + [("$", "$", -1)]  # Append EOF
-        self.index = 0
-        self.parse_tree = ParseTreeNode("<program>")  # Initialize parse tree root
-        node_stack = [self.parse_tree]  # Maintain node stack
-        self.errors = []
-
-        print("Input Tokens:")  # Debugging
-        for token in self.input_tokens:
-            print(token)
-
-        while self.stack:
-            top = self.stack.pop()
-            current_lexeme = self.input_tokens[self.index][0]
-            current_token = self.input_tokens[self.index][1]  # Token type
-            current_line = self.input_tokens[self.index][2]  # Line number
-            parent_node = node_stack.pop() if node_stack else None
-
-            print(f"Stack: {self.stack}, Top: {top}, Token: {current_token}")  # Debugging
-
-            if top == "λ":  # Handle lambda (empty production)
-                continue  # Skip lambda and continue processing the stack
-
-            if top == current_token:  # Terminal match
-                self.index += 1
-                if parent_node:
-                    parent_node.add_child(ParseTreeNode(current_token))
-
-            elif top in self.cfg:  # Non-terminal
-                if current_token in self.parse_table.get(top, {}):
-                    production = self.parse_table[top][current_token]
-                    new_node = ParseTreeNode(top)
-                    if parent_node:
-                        parent_node.add_child(new_node)
-                    if production != ["λ"]:
-                        self.stack.extend(reversed(production))
-                        node_stack.extend(reversed([ParseTreeNode(symbol) for symbol in production]))
-                else:
-                    # Check if lambda is allowed (i.e., current_token is in follow_set of top)
-                    if "λ" in self.parse_table.get(top, {}) and current_token in self.follow_set[top]:
-                        continue  # Skip lambda and continue
-
-                    # 🔹 Fix: Get **only the first set** of next expected non-terminal  
-                    expected_tokens = set(self.parse_table.get(top, {}).keys())
-
-                    if current_token in expected_tokens:
-                        self.syntax_error(current_line, None, expected_tokens)  # Only show expected tokens
+        # Debug: Print full token information
+        print("DEBUG: Received Tokens:")
+        for i, token in enumerate(tokens):
+            print(f"Token {i}: {token}")
+        
+        # Robust token processing
+        def safe_process_token(token):
+            try:
+                # Try different ways of processing tokens
+                if isinstance(token, tuple):
+                    if len(token) == 3:
+                        return token
+                    elif len(token) == 2:
+                        return (token[0], token[1], -1)
                     else:
-                        self.syntax_error(current_line, current_lexeme, expected_tokens)  # Show unexpected + expected
+                        return (str(token), str(token), -1)
+                else:
+                    return (str(token), str(token), -1)
+            except Exception as e:
+                print(f"Error processing token {token}: {e}")
+                return (str(token), str(token), -1)
+
+        # Safely preprocess tokens
+        try:
+            processed_tokens = [safe_process_token(token) for token in tokens]
+            processed_tokens.append(('$', '$', -1))  # Add end marker
+        except Exception as e:
+            print(f"ERROR during token processing: {e}")
+            return False, [f"Token processing error: {e}"]
+
+        # Check if processed tokens are empty
+        if not processed_tokens:
+            print("ERROR: No tokens were processed!")
+            return False, ["No tokens found for parsing"]
+
+        # Initialize parsing
+        self.input_tokens = processed_tokens
+        self.index = 0
+        self.stack = ['$', '<program>']  # Start with end marker and start symbol
+        self.parse_tree = ParseTreeNode('<program>')  # Root of parse tree
+        current_node = self.parse_tree
+
+        while self.stack[-1] != '$':
+            top = self.stack[-1]
+            current_token = self.input_tokens[self.index][1]
+            
+
+            # Debugging print
+            print(f"DEBUG: Stack: {self.stack}, Current Token: {current_token}")
+
+            if top not in self.cfg:  # Terminal
+                if top == current_token:
+                    self.stack.pop()
+                    self.index += 1
+                    # Pop the last child node for terminal matching
+                    if current_node.children and current_node.children[-1].value == top:
+                        current_node = current_node.children[-2] if len(current_node.children) > 1 else self.parse_tree
+                else:
+                    # Syntax error: unexpected token
+                    expected = [t for t in self.parse_table.get(self.stack[-2], {}).keys()]
+                    self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
+                    return False, self.errors
+            else:  # Non-terminal
+                try:
+                    production = self.parse_table[top].get(current_token)
+                    if production is None:
+                        # No production found
+                        expected = list(self.parse_table[top].keys())
+                        self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
+                        return False, self.errors
+
+                    # Pop the top of the stack
+                    self.stack.pop()
+
+                    # Handle lambda (empty) production
+                    if production[0] != 'λ':
+                        # Push production symbols in reverse order
+                        for symbol in reversed(production):
+                            self.stack.append(symbol)
+
+                        # Build parse tree
+                        node = ParseTreeNode(top)
+                        for symbol in production:
+                            child = ParseTreeNode(symbol)
+                            node.add_child(child)
+                        current_node.children.append(node)
+                        current_node = node
+                except KeyError:
+                    # No production for this non-terminal and token
+                    expected = list(self.parse_table.get(top, {}).keys())
+                    self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
                     return False, self.errors
 
-            else:
-                self.syntax_error(current_line, current_lexeme, {top})
-                return False, self.errors
-
-        if self.index < len(self.input_tokens) - 1:
-            remaining_token = self.input_tokens[self.index]
-            self.syntax_error(remaining_token[2], remaining_token[0], {"EOF"})
-            return False, self.errors
-
-        return True, []
-        print("Parse Tree:")
-        print(self.parse_tree)
+        # Successful parse
+        if self.index == len(self.input_tokens) - 1:
+            print("Parsing successful!")
+            return True, []
+        else:
+            # Incomplete parsing
+            print("Parsing didentifier not consume all tokens!")
+            return False, ["Incomplete parsing"]
 
     def syntax_error(self, line, found, expected):
         """ Record a syntax error with correct expected tokens and line number. """
-        if line == -1:  # Use last valid line number if not set
+        if line == -1:  # Use last validentifier line number if not set
+            line = self.input_tokens[self.index - 1][2] if self.index > 0 else 1
+
+        if not self.stack:  
+            # Stack is empty → only report unexpected token
+            error_message = f"Syntax Error at line {line}: Unexpected ' {found} '"
+        elif found == '$':  
+            # Special case: No unexpected token, just missing expected ones
+            error_message = f"Syntax Error at line {line}: Missing expected token(s): {', '.join(expected)}"
+        else:
+            # Normal case: Unexpected token + expected tokens
+            error_message = f"Syntax Error at line {line}: Unexpected ' {found} ' (Expected {', '.join(expected)})"
+
+        self.errors.append(error_message)
+
+
+    def syntax_error(self, line, found, expected):
+        """ Record a syntax error with correct expected tokens and line number. """
+        if line == -1:  # Use last validentifier line number if not set
             line = self.input_tokens[self.index - 1][2] if self.index > 0 else 1
 
         if not self.stack:  
@@ -399,18 +460,6 @@ class LL1Parser:
             error_message = f"Syntax Error at line {line}: Unexpected ' {found} ' (Expected {', '.join(expected)})"
 
         self.errors.append(error_message)
-       
-
-# Run Parser
-parser = LL1Parser(cfg, parse_table, follow_set)
-tokens = []
-
-
-errors = parser.parse(tokens)
-print((errors))
-
-
-
 
 
 # for non_terminal, productions in cfg.items():
