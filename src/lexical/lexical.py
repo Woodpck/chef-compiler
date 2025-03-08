@@ -49,6 +49,7 @@ class LexicalAnalyzer:
         self.code = ""
         self.index = 0
         self.line_number = 1
+        self.identifier_count = 0
 
     def nextChar(self):
             if self.index < len(self.code):
@@ -68,6 +69,7 @@ class LexicalAnalyzer:
         state = 0
         lexeme = ""
         line = 1
+        self.identifier_count = 0
 
         while True:
             c = self.nextChar()
@@ -2537,7 +2539,9 @@ class LexicalAnalyzer:
                         state = 0
                         
                 case 231:
-                    tokens.append((lexeme, "identifier"))
+                    self.identifier_count += 1  # Increment counter
+                    token_name = f"identifier{self.identifier_count}"
+                    tokens.append((lexeme, token_name))  # Use the numbered token
                     if c is not None:
                         self.stepBack()
                     state = 0
@@ -2560,10 +2564,13 @@ class LexicalAnalyzer:
                         state = 0
                 
                 case 233:
-                    tokens.append((lexeme, "identifier"))
+                    self.identifier_count += 1  # Increment counter
+                    token_name = f"identifier{self.identifier_count}"
+                    tokens.append((lexeme, token_name))  # Use the numbered token
                     if c is not None:
                         self.stepBack()
                     state = 0 
+                    
                 case 234:
                     if c is None or c in self.whitespace:
                         state = 235

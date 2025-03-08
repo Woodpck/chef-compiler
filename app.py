@@ -16,7 +16,8 @@ def index():
     error_syntax_text = ""
     code = ""
     output = []  # Stores syntax analysis output
-
+    identifier_count = 0  # Initialize identifier count
+    
     if request.method == "POST":
         code = normalize_newlines(request.form.get("code", ""))
         action = request.form.get("action")
@@ -25,6 +26,7 @@ def index():
             analyzer = LexicalAnalyzer()
             try:
                 result = analyzer.tokenize(code)
+                identifier_count = analyzer.identifier_count  # Get the count
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
             except Exception as e:
                 error_tokens_text = f"An error occurred: {e}"
@@ -33,6 +35,7 @@ def index():
             analyzer = LexicalAnalyzer()
             try:
                 lexical_tokens = analyzer.tokenize(code)
+                identifier_count = analyzer.identifier_count  # Get the count
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
                 
                 if error_tokens_text:
@@ -77,7 +80,8 @@ def index():
         syntax_tokens=syntax_tokens,
         error_tokens_text=error_tokens_text,
         error_syntax_text=error_syntax_text,
-        output=output
+        output=output,
+        identifier_count=identifier_count
     )
 
 if __name__ == "__main__":
