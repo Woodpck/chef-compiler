@@ -329,15 +329,22 @@ class LL1Parser:
         def safe_process_token(token):
             try:
                 if isinstance(token, tuple):
-                    lexeme = token[0]
-                    token_type = token[1]
-                    line = token[2] if len(token) > 2 else -1
+                    # Ensure we have at least lexeme, token_type, and line_number
+                    if len(token) >= 3:
+                        lexeme = token[0]
+                        token_type = token[1]
+                        line_number = token[2]  # This should be the actual line number from the source
+                    else:
+                        # If token doesn't have all required elements, try to extract what we can
+                        lexeme = token[0] if len(token) > 0 else ""
+                        token_type = token[1] if len(token) > 1 else str(lexeme)
+                        line_number = -1  # Missing line number
                     
                     # Only normalize the token type for identifiers, preserve the lexeme
                     if isinstance(token_type, str) and token_type.startswith("identifier"):
-                        normalized_token = (lexeme, "identifier", line)
+                        normalized_token = (lexeme, "identifier", line_number)
                     else:
-                        normalized_token = (lexeme, token_type, line)
+                        normalized_token = (lexeme, token_type, line_number)
                     
                     return normalized_token
                 else:
@@ -354,7 +361,7 @@ class LL1Parser:
             # Debug: Print processed tokens after normalization
             print("DEBUG: Received Tokens (after normalization):")
             for i, token in enumerate(processed_tokens[:-1]):  # Skip the $ token in debug output
-                print(f"Token {i}: {token}")
+                print(f"Token {i}: Lexeme={token[0]}, Type={token[1]}, Line={token[2]}")
                 
         except Exception as e:
             print(f"ERROR during token processing: {e}")
@@ -376,9 +383,10 @@ class LL1Parser:
         while self.stack[-1] != '$':
             top = self.stack[-1]
             current_token = self.input_tokens[self.index][1]
+            current_line = self.input_tokens[self.index][2]  # Get source line number
             
             # Debugging print
-            print(f"DEBUG: Stack: {self.stack}, Current Token: {current_token}, Current Node: {current_node.value}")
+            print(f"DEBUG: Stack: {self.stack}, Current Token: {current_token}, Line: {current_line}, Current Node: {current_node.value}")
 
             if top not in self.cfg:  # Terminal
                 if top == current_token:
@@ -390,7 +398,7 @@ class LL1Parser:
                 else:
                     # Syntax error: unexpected token
                     expected = [t for t in self.parse_table.get(self.stack[-2], {}).keys()]
-                    self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
+                    self.syntax_error(current_line, current_token, expected)
                     return False, self.errors
             else:  # Non-terminal
                 try:
@@ -398,7 +406,7 @@ class LL1Parser:
                     if production is None:
                         # No production found
                         expected = list(self.parse_table[top].keys())
-                        self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
+                        self.syntax_error(current_line, current_token, expected)
                         return False, self.errors
 
                     # Pop the top of the stack
@@ -424,7 +432,7 @@ class LL1Parser:
                 except KeyError:
                     # No production for this non-terminal and token
                     expected = list(self.parse_table.get(top, {}).keys())
-                    self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
+                    self.syntax_error(current_line, current_token, expected)
                     return False, self.errors
             
             # Check if we need to move back up the tree
@@ -449,24 +457,66 @@ class LL1Parser:
             print("Parsing did not consume all tokens!")
             return False, ["Incomplete parsing"]
 
-    def syntax_error(self, line, found, expected):
-        """ Record a syntax error with correct expected tokens and line number. """
-        if line == -1:  # Use last valid line number if not set
-            line = self.input_tokens[self.index - 1][2] if self.index > 0 else 1
-
-        if not self.stack:  
-            # Stack is empty → only report unexpected token
-            error_message = f"Syntax Error at line {line}: Unexpected ' {found} '"
-        elif found == '$':  
-            # Special case: No unexpected token, just missing expected ones
-            error_message = f"Syntax Error at line {line}: Missing expected token(s): {', '.join(expected)}"
+    def syntax_error(self, line_number, found, expected):
+        """Record a syntax error with detailed information about the error location and expected tokens."""
+        # Get the actual lexeme for better error messages
+        token_lexeme = self.input_tokens[self.index][0] if self.index < len(self.input_tokens) else found
+        
+        # Filter out redundant or irrelevant expected tokens
+        filtered_expected = []
+        if expected:
+            # Remove duplicates and sort for consistent error messages
+            filtered_expected = sorted(set(expected))
+            # Remove lambda if it's in the expected list for clearer error messages
+            if "λ" in filtered_expected:
+                filtered_expected.remove("λ")
+        
+        # Ensure we have a valid line number
+        if line_number == -1 or line_number is None:
+            line_number = "unknown"
+        
+        # Handle different error scenarios
+        if not self.stack:
+            # Stack is empty, but we still have tokens → unexpected extra tokens
+            error_message = f"Syntax Error at line {line_number}: Unexpected token '{token_lexeme}' after parsing completed"
+        elif found == '$' and self.stack[-1] != '$':
+            # Unexpected end of input - something is missing
+            top_symbol = self.stack[-1]
+            missing_desc = f"'{top_symbol}'" if top_symbol not in self.cfg else "required tokens"
+            error_message = f"Syntax Error at line {line_number}: Unexpected end of input, missing {missing_desc}"
+        elif filtered_expected:
+            # We have expected tokens to report
+            expected_str = ", ".join(f"'{e}'" for e in filtered_expected)
+            error_message = f"Syntax Error at line {line_number}: Unexpected '{token_lexeme}', expected {expected_str}"
         else:
-            # Normal case: Unexpected token + expected tokens
-            error_message = f"Syntax Error at line {line}: Unexpected ' {found} ' (Expected {', '.join(expected)})"
-
+            # No specific expected tokens to report
+            error_message = f"Syntax Error at line {line_number}: Unexpected '{token_lexeme}'"
+        
+        # Add context about current parsing state
+        current_context = None
+        try:
+            # Try to get the non-terminal we're currently parsing for context
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i] in self.cfg:
+                    current_context = self.stack[i]
+                    break
+            
+            if current_context:
+                error_message += f" while parsing <{current_context}>"
+        except Exception:
+            # If determining context fails, just continue without it
+            pass
+        
+        # Add a recovery hint if possible
+        if filtered_expected and len(filtered_expected) <= 3:
+            error_message += f" - consider adding {' or '.join(f"'{e}'" for e in filtered_expected)}"
+        
         self.errors.append(error_message)
-
-
+        
+        # Debug info can be helpful when troubleshooting
+        debug_info = f"DEBUG: Stack: {self.stack}, Current index: {self.index}, Line number: {line_number}"
+        print(debug_info)
+        
 # for non_terminal, productions in cfg.items():
 #     for i, item in enumerate(productions):
 #         print(f"{non_terminal} -> {productions[i]}")
