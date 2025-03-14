@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChefScript</title>
+    <title>Code Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -18,12 +18,10 @@
         </nav>
     </header>
     <main class="three-column-layout">
+        <!-- Input Area -->
         <div class="column input-area">
             <form method="POST">
-                <div class="textarea-wrapper">
-                    <div class="line-numbers" id="lineNumbers"></div>
-                    <textarea name="code" placeholder="Enter your code here..." oninput="updateLineNumbers()" onscroll="syncScroll()">{{ code }}</textarea>
-                </div>
+                <textarea name="code" placeholder="Enter your code here...">{{ code }}</textarea>
                 <div class="button-container">
                     <button type="submit" name="action" value="lexical">Lexical Analyzer</button>
                     <button type="submit" name="action" value="syntax">Syntax Analyzer</button>
@@ -31,60 +29,71 @@
                 </div>
             </form>
         </div>
-
+        
+        <!-- Error Sections -->
         <div class="column error-sections">
+            <!-- Lexical Errors -->
             <div class="error-block">
                 <h2>Lexical Errors</h2>
-                {% if error_tokens_text %}
-                    <p class="error-message">{{ error_tokens_text }}</p>
-                {% else %}
-                    <p class="success-message">No Lexical Analysis Errors!</p>
+                {% if code %} 
+                    {% if error_tokens_text %}
+                        <pre>{{ error_tokens_text }}</pre>
+                    {% else %}
+                        <p>No Lexical Errors</p>
+                    {% endif %}
                 {% endif %}
             </div>
+
+            <!-- Syntax Errors -->
             <div class="error-block">
                 <h2>Syntax Errors</h2>
-                {% if error_syntax_text %}
-                    <p class="error-message">{{ error_syntax_text }}</p>
-                {% else %}
-                    <p class="success-message">No Syntax Analysis Errors!</p>
+                {% if code %}  
+                    {% if error_syntax_text %}
+                        <pre>{{ error_syntax_text }}</pre>
+                    {% else %}
+                        <p>No Syntax Errors</p>
+                    {% endif %}
                 {% endif %}
             </div>
+
+            <!-- Semantic Errors -->
             <div class="error-block">
                 <h2>Semantic Errors</h2>
-                {% if error_semantic_text %}
-                    <p class="error-message">{{ error_semantic_text }}</p>
-                {% else %}
-                    <p class="success-message">No Semantic Analysis Errors!</p>
+                {% if code %}  
+                    {% if error_semantic_text %}
+                        <pre>{{ error_semantic_text }}</pre>
+                    {% else %}
+                        <p>No Semantic Errors</p>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
-        
+
+        <!-- Result Table and Semantic Output -->
         <div class="column result-table">
+            <!-- Lexical and Token Table -->
             <h2>Lexical and Token Table</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lexeme</th>
+                        <th>Token</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lexeme, token in result %}
                         <tr>
-                            <th>Lexeme</th>
-                            <th>Token</th>
+                            <td>{{ lexeme }}</td>
+                            <td>{{ token }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% if result and result|length > 0 %}
-                            {% for lexeme, token in result %}
-                                <tr>
-                                    <td>{{ lexeme }}</td>
-                                    <td>{{ token }}</td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="2" class="no-results">No results yet</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+                    {% else %}
+                        <tr>
+                            <td colspan="2">No results yet</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
             <!-- Semantic Analysis Output -->
             {% if output %}
                 <div class="output-section">
@@ -97,9 +106,6 @@
                 </div>
             {% endif %}
         </div>
-        
-    </main>
-        </div>        
     </main>
 
     <script>
