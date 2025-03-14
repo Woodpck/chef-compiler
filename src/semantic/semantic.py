@@ -5,15 +5,20 @@ class SemanticAnalyzer:
         self.arrays = {}
         self.current_scope = "global"
         self.scopes = ["global"]
-        self.errors = []
+        self.errors = []  # Make sure this is initialized
         self.current_function = None
         self.output_messages = []
 
     def analyze(self, parse_tree):
+        # Clear previous errors and messages
+        self.errors = []
+        self.output_messages = []
+        
         if not parse_tree:
             error_msg = "No parse tree available for semantic analysis"
             self.errors.append(error_msg)
             self.output_messages.append(error_msg)
+            print(f"Semantic Analysis Error: {error_msg}")  # Debug log
             return False, self.errors
 
         print("Starting semantic analysis...")
@@ -28,8 +33,13 @@ class SemanticAnalyzer:
                 error_msg = f"Semantic Error: Function '{func_name}' must return a value of type {func_info['return_type']}"
                 self.errors.append(error_msg)
                 self.output_messages.append(error_msg)
+                print(f"Semantic Analysis Error: {error_msg}")  # Debug log
 
+        # Important: Log the errors for debugging
         if self.errors:
+            print(f"Semantic analysis found {len(self.errors)} errors:")
+            for i, err in enumerate(self.errors):
+                print(f"  Error {i+1}: {err}")
             return False, self.errors
 
         self.output_messages.append("Semantic analysis completed successfully!")

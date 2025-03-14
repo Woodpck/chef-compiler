@@ -1,5 +1,4 @@
 cfg = {
-
     "<program>": [["dinein", "<global_dec>", "<function>", "chef", "pinch", "dish", "(", ")", "{", "<local_dec>", "<statement_block>", "spit", "pinchliterals", ";", "}", "takeout"]],
 	
     "<global_dec>": [["<declarations>", "<global_dec>"],

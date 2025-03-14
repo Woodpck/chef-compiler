@@ -52,7 +52,7 @@
             <div class="error-block">
                 <h2>Semantic Errors</h2>
                 {% if error_semantic_text %}
-                    <p class="error-message">{{ error_semantic_text }}</p>
+                    <p class="error-message">{{ error_semantic_text|safe }}</p>
                 {% else %}
                     <p class="success-message">No Semantic Analysis Errors!</p>
                 {% endif %}
