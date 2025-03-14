@@ -18,45 +18,60 @@
         </nav>
     </header>
     <main class="three-column-layout">
+        <!-- Input Area -->
         <div class="column input-area">
             <form method="POST">
                 <textarea name="code" placeholder="Enter your code here...">{{ code }}</textarea>
                 <div class="button-container">
                     <button type="submit" name="action" value="lexical">Lexical Analyzer</button>
                     <button type="submit" name="action" value="syntax">Syntax Analyzer</button>
-                    <button type="submit" name="action" value="soon">Soon</button>
+                    <button type="submit" name="action" value="semantic">Semantic Analyzer</button>
                 </div>
             </form>
         </div>
         
+        <!-- Error Sections -->
         <div class="column error-sections">
+            <!-- Lexical Errors -->
             <div class="error-block">
                 <h2>Lexical Errors</h2>
                 {% if code %} 
                     {% if error_tokens_text %}
-                        <p>{{ error_tokens_text }}</p>
-                {% else %}
+                        <pre>{{ error_tokens_text }}</pre>
+                    {% else %}
                         <p>No Lexical Errors</p>
-                {% endif %}
+                    {% endif %}
                 {% endif %}
             </div>
+
+            <!-- Syntax Errors -->
             <div class="error-block">
                 <h2>Syntax Errors</h2>
                 {% if code %}  
                     {% if error_syntax_text %}
-                        <p>{{ error_syntax_text }}</p>
-                {% else %}
+                        <pre>{{ error_syntax_text }}</pre>
+                    {% else %}
                         <p>No Syntax Errors</p>
-                {% endif %}
+                    {% endif %}
                 {% endif %}
             </div>
+
+            <!-- Semantic Errors -->
             <div class="error-block">
-                <h2>Soon</h2>
-                <p></p>
+                <h2>Semantic Errors</h2>
+                {% if code %}  
+                    {% if error_semantic_text %}
+                        <pre>{{ error_semantic_text }}</pre>
+                    {% else %}
+                        <p>No Semantic Errors</p>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
 
+        <!-- Result Table and Semantic Output -->
         <div class="column result-table">
+            <!-- Lexical and Token Table -->
             <h2>Lexical and Token Table</h2>
             <table>
                 <thead>
@@ -78,31 +93,45 @@
                     {% endfor %}
                 </tbody>
             </table>
+
+            <!-- Semantic Analysis Output -->
+            {% if output %}
+                <div class="output-section">
+                    <h2>Semantic Analysis Output</h2>
+                    <ul>
+                        {% for message in output %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
         </div>
     </main>
-</body>
-<script>
-    document.querySelectorAll('textarea').forEach(textarea => {
-        textarea.addEventListener('keydown', (e) => {
-            if (e.key !== 'Tab') return;
-            
-            e.preventDefault();
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const value = textarea.value;
-            
-            if (start === end) {
-                // Insert tab at cursor
-                textarea.value = value.slice(0, start) + '\t' + value.slice(end);
-                textarea.setSelectionRange(start + 1, start + 1);
-            } else {
-                // Indent selected lines
-                const selectedText = value.substring(start, end);
-                const indentedText = selectedText.replace(/^/gm, '\t');
-                textarea.value = value.slice(0, start) + indentedText + value.slice(end);
-                textarea.setSelectionRange(start, start + indentedText.length);
-            }
+
+    <!-- Script for Tab Key Handling -->
+    <script>
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key !== 'Tab') return;
+                
+                e.preventDefault();
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const value = textarea.value;
+                
+                if (start === end) {
+                    // Insert tab at cursor
+                    textarea.value = value.slice(0, start) + '\t' + value.slice(end);
+                    textarea.setSelectionRange(start + 1, start + 1);
+                } else {
+                    // Indent selected lines
+                    const selectedText = value.substring(start, end);
+                    const indentedText = selectedText.replace(/^/gm, '\t');
+                    textarea.value = value.slice(0, start) + indentedText + value.slice(end);
+                    textarea.setSelectionRange(start, start + indentedText.length);
+                }
+            });
         });
-    });
-</script>
+    </script>
+</body>
 </html>
