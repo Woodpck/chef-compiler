@@ -32,7 +32,8 @@ def index():
                 error_tokens_text = "\n".join(analyzer.errors) if hasattr(analyzer, 'errors') else ""
             except Exception as e:
                 error_tokens_text = f"An error occurred: {e}"
-        elif action == "syntax" and code.strip():
+                
+        if action == "syntax" and code.strip():
             analyzer = LexicalAnalyzer()
             try:
                 lexical_tokens = analyzer.tokenize(code)
@@ -43,12 +44,45 @@ def index():
                     result = lexical_tokens
                     error_syntax_text = "Cannot proceed with Syntax Analysis due to Lexical Errors"
                 else:
+                    # Track line numbers based on the original code
+                    code_lines = code.splitlines()
+                    line_positions = []
+                    pos = 0
+                    
+                    # Build a map of character positions to line numbers
+                    for i, line in enumerate(code_lines, 1):
+                        line_len = len(line)
+                        # Map each position in this line to its line number
+                        for j in range(line_len + 1):  # +1 for the newline
+                            line_positions.append(i)
+                        pos += line_len + 1
+                    
+                    # Create syntax tokens with line numbers
                     syntax_tokens = []
-                    for i, (lexeme, token) in enumerate(lexical_tokens, 1):
-                        syntax_tokens.append((lexeme, token, i))
+                    pos = 0
+                    
+                    for lexeme, token in lexical_tokens:
+                        # Search for the lexeme starting from current position
+                        lexeme_pos = code.find(lexeme, pos)
+                        
+                        if lexeme_pos >= 0 and lexeme_pos < len(line_positions):
+                            # Get the line number for this position
+                            line_num = line_positions[lexeme_pos]
+                            pos = lexeme_pos + len(lexeme)  # Move position past this token
+                        else:
+                            # Default to line 1 if we can't determine position
+                            line_num = 1
+                        
+                        # Add token with line number
+                        syntax_tokens.append((lexeme, token, line_num))
                     
                     # Store the original tokens for display
                     result = lexical_tokens
+                    
+                    # Debug: print tokens with line numbers
+                    print("DEBUG: Tokens with line numbers:")
+                    for i, t in enumerate(syntax_tokens):
+                        print(f"  Token {i}: {t}")
                     
                     # Create the Parser instance with required parameters
                     parser = LL1Parser(cfg, parse_table, follow_set)
