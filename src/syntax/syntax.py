@@ -45,7 +45,7 @@ cfg = {
 				["λ"]],
  
 	"<function_definition>": [["full", "<data_type>", "identifier", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "spit", "<expression>", ";", "}"],
-						["hungry", "identifier", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "}", ";"]],
+						["hungry", "identifier", "(", "<parameters>", ")", "{", "<local_dec>", "<statement_block>", "}"]],
  
 	"<parameters>": [["<data_type>", "identifier", "<param_tail>"],
 					["λ"]],
@@ -295,17 +295,22 @@ predict_set = compute_predict_set(cfg, first_set, follow_set)
 parse_table = gen_parse_table()
 
 class ParseTreeNode:
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, token_value):
+        # If the token is in the format "token_type:literal", store only the literal.
+        if isinstance(token_value, str) and ':' in token_value:
+            # Split on the first colon and take the second part.
+            self.value = token_value.split(':', 1)[1]
+        else:
+            self.value = token_value
         self.children = []
 
     def add_child(self, child):
         self.children.append(child)
 
-    def __repr__(self, level=0):
+    def __str__(self, level=0):
         ret = "  " * level + repr(self.value) + "\n"
         for child in self.children:
-            ret += child.__repr__(level + 1)
+            ret += child.__str__(level + 1)
         return ret
 
 class LL1Parser:
@@ -366,21 +371,22 @@ class LL1Parser:
         self.stack = ['$', '<program>']  # Start with end marker and start symbol
         self.parse_tree = ParseTreeNode('<program>')  # Root of parse tree
         current_node = self.parse_tree
+        node_stack = [current_node]  # Stack to keep track of parent nodes
 
         while self.stack[-1] != '$':
             top = self.stack[-1]
             current_token = self.input_tokens[self.index][1]
             
             # Debugging print
-            print(f"DEBUG: Stack: {self.stack}, Current Token: {current_token}")
+            print(f"DEBUG: Stack: {self.stack}, Current Token: {current_token}, Current Node: {current_node.value}")
 
             if top not in self.cfg:  # Terminal
                 if top == current_token:
                     self.stack.pop()
+                    # Add terminal node to parse tree with lexeme
+                    terminal_node = ParseTreeNode(f"{top}:{self.input_tokens[self.index][0]}")
+                    current_node.add_child(terminal_node)
                     self.index += 1
-                    # Pop the last child node for terminal matching
-                    if current_node.children and current_node.children[-1].value == top:
-                        current_node = current_node.children[-2] if len(current_node.children) > 1 else self.parse_tree
                 else:
                     # Syntax error: unexpected token
                     expected = [t for t in self.parse_table.get(self.stack[-2], {}).keys()]
@@ -397,29 +403,46 @@ class LL1Parser:
 
                     # Pop the top of the stack
                     self.stack.pop()
+                    
+                    # Create node for this non-terminal
+                    non_terminal_node = ParseTreeNode(top)
+                    current_node.add_child(non_terminal_node)
 
                     # Handle lambda (empty) production
-                    if production[0] != 'λ':
+                    if production[0] == 'λ':
+                        # Add lambda node explicitly
+                        lambda_node = ParseTreeNode('λ')
+                        non_terminal_node.add_child(lambda_node)
+                    else:
                         # Push production symbols in reverse order
                         for symbol in reversed(production):
                             self.stack.append(symbol)
-
-                        # Build parse tree
-                        node = ParseTreeNode(top)
-                        for symbol in production:
-                            child = ParseTreeNode(symbol)
-                            node.add_child(child)
-                        current_node.children.append(node)
-                        current_node = node
+                        
+                        # Update current node for children
+                        node_stack.append(current_node)
+                        current_node = non_terminal_node
                 except KeyError:
                     # No production for this non-terminal and token
                     expected = list(self.parse_table.get(top, {}).keys())
                     self.syntax_error(self.input_tokens[self.index][2], current_token, expected)
                     return False, self.errors
+            
+            # Check if we need to move back up the tree
+            while (len(self.stack) >= 2 and 
+                   self.stack[-1] not in self.cfg and 
+                   current_node != self.parse_tree and 
+                   len(node_stack) > 0):
+                next_symbol = self.stack[-1]
+                if next_symbol in self.cfg:  # If next symbol is non-terminal, don't pop yet
+                    break
+                current_node = node_stack.pop()
 
         # Successful parse
         if self.index == len(self.input_tokens) - 1:
             print("Parsing successful!")
+            # Print parse tree for debugging
+            print("PARSE TREE:")
+            print(self.parse_tree)
             return True, []
         else:
             # Incomplete parsing
