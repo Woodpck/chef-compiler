@@ -14,7 +14,7 @@ class SemanticAnalyzer:
             error_msg = "No parse tree available for semantic analysis"
             self.errors.append(error_msg)
             self.output_messages.append(error_msg)
-            return False, self.errors
+            return False, self.errors  # Return errors, not output_messages when failed
 
         print("Starting semantic analysis...")
         print(f"Parse Tree Root: {parse_tree.value}")
@@ -30,7 +30,8 @@ class SemanticAnalyzer:
                 self.output_messages.append(error_msg)
 
         if self.errors:
-            return False, self.errors
+            print(f"Semantic analysis found {len(self.errors)} errors")
+            return False, self.errors  # Return errors when failed
 
         self.output_messages.append("Semantic analysis completed successfully!")
         return True, self.output_messages
@@ -97,95 +98,69 @@ class SemanticAnalyzer:
         data_type = None
         identifier = None
         initialization = None
-        is_array = False
-        array_size = None
-        elements = None
         line = -1  # Default line number if not available
         
-        # First, check if it's an array declaration
-        for child in node.children:
-            if child.value == "recipe":
-                is_array = True
-                break
+        print(f"DEBUG: Analyzing declaration node: {node.value} with {len(node.children)} children")
+        print(f"DEBUG: Children values: {[child.value for child in node.children]}")
         
+        # Extract data type
         for child in node.children:
-            if child.value == "<data_type>" or child.value == "<data_type2>":
+            print(f"DEBUG: Checking child: {child.value}")
+            if child.value == "<data_type>":
                 data_type = self._extract_data_type(child)
+                print(f"DEBUG: Found data type: {data_type}")
             elif child.value == "identifier":
                 # Extract the actual identifier lexeme and line number
                 if hasattr(child, "lexeme"):
                     identifier = child.lexeme
                     line = child.line
-                else:
-                    # Try to extract from the first child if it's a terminal node
-                    if child.children and hasattr(child.children[0], "lexeme"):
-                        identifier = child.children[0].lexeme
-                        line = child.children[0].line
-            elif child.value == "pinchliterals" and is_array:
-                # Array size
-                if hasattr(child, "lexeme"):
-                    array_size = int(child.lexeme)
                 elif child.children and hasattr(child.children[0], "lexeme"):
-                    array_size = int(child.children[0].lexeme)
-            elif child.value == "<elements>":
-                # Array elements
-                elements = self._extract_array_elements(child)
+                    identifier = child.children[0].lexeme
+                    line = child.children[0].line
+                print(f"DEBUG: Found identifier: {identifier} at line {line}")
             elif child.value == "<dec_or_init>":
                 # Variable initialization
+                print(f"DEBUG: Found dec_or_init, extracting initialization")
                 initialization = self._extract_initialization(child)
+                print(f"DEBUG: Initialization result: {initialization}")
         
         if identifier is None:
+            print("DEBUG: No identifier found, returning early")
             return  # Can't process without an identifier
         
         # Check if variable is already declared in the current scope
         symbol_key = f"{scope}.{identifier}"
         if symbol_key in self.symbol_table:
-            self.errors.append(f"Semantic Error at line {line}: Variable '{identifier}' already declared in this scope")
+            error_msg = f"Semantic Error at line {line}: Variable '{identifier}' already declared in this scope"
+            print(f"DEBUG: Adding error: {error_msg}")
+            self.errors.append(error_msg)
             return
         
-        if is_array:
-            # Process array declaration
-            if data_type is None:
-                self.errors.append(f"Semantic Error at line {line}: Array '{identifier}' declared without a valid data type")
-                return
-            
-            if array_size is None:
-                self.errors.append(f"Semantic Error at line {line}: Array '{identifier}' declared without a size")
-                return
-            
-            # Store array info
-            self.arrays[symbol_key] = {
-                "type": data_type,
-                "size": array_size,
-                "elements": elements or [],
-                "line": line,
-                "scope": scope
-            }
-            
-            # Check if elements match the declared type
-            if elements:
-                for i, elem in enumerate(elements):
-                    if not self._is_compatible_type(elem["type"], data_type):
-                        self.errors.append(f"Semantic Error at line {line}: Type mismatch in array '{identifier}' at index {i}: expected {data_type}, got {elem['type']}")
-        else:
-            # Process regular variable declaration
-            if data_type is None:
-                self.errors.append(f"Semantic Error at line {line}: Variable '{identifier}' declared without a valid data type")
-                return
-            
-            # Store variable info
-            self.symbol_table[symbol_key] = {
-                "type": data_type,
-                "initialized": initialization is not None,
-                "line": line,
-                "scope": scope
-            }
-            
-            # Check initialization type compatibility
-            if initialization is not None:
-                init_type = initialization["type"]
-                if not self._is_compatible_type(init_type, data_type):
-                    self.errors.append(f"Semantic Error at line {line}: Type mismatch in initialization of '{identifier}': expected {data_type}, got {init_type}")
+        # Process regular variable declaration
+        if data_type is None:
+            error_msg = f"Semantic Error at line {line}: Variable '{identifier}' declared without a valid data type"
+            print(f"DEBUG: Adding error: {error_msg}")
+            self.errors.append(error_msg)
+            return
+        
+        # Store variable info
+        self.symbol_table[symbol_key] = {
+            "type": data_type,
+            "initialized": initialization is not None,
+            "line": line,
+            "scope": scope
+        }
+        print(f"DEBUG: Added to symbol table: {symbol_key} = {self.symbol_table[symbol_key]}")
+        
+        # Check initialization type compatibility
+        if initialization is not None:
+            init_type = initialization["type"]
+            print(f"DEBUG: Checking type compatibility: {init_type} vs {data_type}")
+            if not self._is_compatible_type(init_type, data_type):
+                error_msg = f"Semantic Error at line {line}: Type mismatch in initialization of '{identifier}': expected {data_type}, got {init_type}"
+                print(f"DEBUG: Adding error: {error_msg}")
+                self.errors.append(error_msg)
+                self.output_messages.append(error_msg)  # Add to output messages as well
 
     def _extract_data_type(self, node):
         """Extract data type from a <data_type> node"""
@@ -196,12 +171,52 @@ class SemanticAnalyzer:
 
     def _extract_initialization(self, node):
         """Extract initialization value and type from <dec_or_init> node"""
+        print(f"DEBUG: Extracting initialization from {node.value} with {len(node.children)} children")
+        print(f"DEBUG: Children: {[child.value for child in node.children]}")
+        
         for child in node.children:
             if child.value == "=":
-                # Look for literals after the = sign
-                literals_node = self._find_child_by_value(node, "<literals>")
-                if literals_node:
-                    return self._extract_literal_value(literals_node)
+                print("DEBUG: Found assignment operator '='")
+                # First, try to find a direct expression
+                for sibling in node.children:
+                    print(f"DEBUG: Checking sibling for literals: {sibling.value}")
+                    if sibling.value == "<expression>":
+                        print("DEBUG: Found expression node")
+                        for expr_child in sibling.children:
+                            print(f"DEBUG: Expression child: {expr_child.value}")
+                            if expr_child.value == "<literals>":
+                                print("DEBUG: Found literals node in expression")
+                                result = self._extract_literal_value(expr_child)
+                                print(f"DEBUG: Extracted literal value: {result}")
+                                return result
+                            # Check if the expression child is a string literal
+                            if isinstance(expr_child.value, str) and expr_child.value.startswith('"') and expr_child.value.endswith('"'):
+                                print(f"DEBUG: Found string literal: {expr_child.value}")
+                                return {"value": expr_child.value.strip('"'), "type": "pasta"}
+                    
+                    # Check if this sibling is a string literal
+                    if isinstance(sibling.value, str) and sibling.value.startswith('"') and sibling.value.endswith('"'):
+                        print(f"DEBUG: Found direct string literal: {sibling.value}")
+                        return {"value": sibling.value.strip('"'), "type": "pasta"}
+                    
+                    # Check if the sibling has a <literals> child
+                    if hasattr(sibling, 'children'):
+                        for s_child in sibling.children:
+                            print(f"DEBUG: Checking sibling's child: {s_child.value}")
+                            if s_child.value == "<literals>":
+                                print("DEBUG: Found literals node in sibling")
+                                result = self._extract_literal_value(s_child)
+                                print(f"DEBUG: Extracted literal value: {result}")
+                                return result
+                            
+                            # Check if this is a string literal
+                            if isinstance(s_child.value, str) and s_child.value.startswith('"') and s_child.value.endswith('"'):
+                                print(f"DEBUG: Found string literal in sibling: {s_child.value}")
+                                return {"value": s_child.value.strip('"'), "type": "pasta"}
+                
+                print("DEBUG: No literals found after exhaustive search")
+        
+        print("DEBUG: No initialization value found")
         return None
 
     def _extract_array_elements(self, node):
@@ -236,32 +251,41 @@ class SemanticAnalyzer:
 
     def _extract_literal_value(self, node):
         """Extract literal value and its type"""
+        print(f"DEBUG: Extracting literal value from {node.value} with {len(node.children)} children")
+        print(f"DEBUG: Children: {[child.value for child in node.children]}")
+        
         for child in node.children:
+            print(f"DEBUG: Checking literal child: {child.value}")
             # Check for specific literal tokens
             if child.value in ["pinchliterals", "skimliterals", "pastaliterals"]:
+                print(f"DEBUG: Found typed literal: {child.value}")
                 value = None
                 if hasattr(child, "lexeme"):
                     value = child.lexeme
+                    print(f"DEBUG: Literal lexeme: {value}")
                 elif child.children and hasattr(child.children[0], "lexeme"):
                     value = child.children[0].lexeme
+                    print(f"DEBUG: Literal child lexeme: {value}")
+                
                 type_map = {
                     "pinchliterals": "pinch",
                     "skimliterals": "skim",
                     "pastaliterals": "pasta"
                 }
-                return {"value": value, "type": type_map[child.value]}
-            # New check for string literal tokens that start and end with quotes.
+                result = {"value": value, "type": type_map[child.value]}
+                print(f"DEBUG: Returning literal result: {result}")
+                return result
+                
+            # Check for string literal tokens
             elif isinstance(child.value, str) and child.value.startswith('"') and child.value.endswith('"'):
-                # Remove the surrounding quotes
+                print(f"DEBUG: Found string literal: {child.value}")
                 value = child.value.strip('"')
-                return {"value": value, "type": "pasta"}
-            elif child.value == "<yum_or_bleh>":
-                # Boolean literals
-                for bool_child in child.children:
-                    if bool_child.value in ["yum", "bleh"]:
-                        return {"value": bool_child.value, "type": "bool"}
+                result = {"value": value, "type": "pasta"}
+                print(f"DEBUG: Returning string result: {result}")
+                return result
+        
+        print("DEBUG: No literal value found")
         return None
-
 
     def _analyze_functions(self, node):
         """Analyze function declarations"""
@@ -911,17 +935,16 @@ class SemanticAnalyzer:
         
         return "pinch"
 
-    def _is_comparable_type(self, type1, type2):
-        """Check if two types can be compared"""
-        # Same types can always be compared
-        if type1 == type2:
+    def _is_compatible_type(self, source_type, target_type):
+        """Check if source_type is compatible with target_type"""
+        print(f"DEBUG: Checking type compatibility: {source_type} vs {target_type}")
+        # Same types are always compatible
+        if source_type == target_type:
+            print("DEBUG: Types are identical, compatible")
             return True
-        
-        # Numeric types can be compared with each other
-        numeric_types = ["pinch", "skim"]
-        if type1 in numeric_types and type2 in numeric_types:
-            return True
-        
+            
+        # Different types are not compatible
+        print("DEBUG: Types are different, incompatible")
         return False
 
     def _analyze_return_statement(self, node):
@@ -1154,14 +1177,13 @@ class SemanticAnalyzer:
         return False
 
     def _find_child_by_value(self, node, value):
-        """Find the first child node with the given value"""
-        if not node or not hasattr(node, "children"):
-            return None
-        
+        """Find a child node with the specified value"""
+        print(f"DEBUG: Finding child with value: {value} in {node.value}")
         for child in node.children:
-            if hasattr(child, "value") and child.value == value:
+            if child.value == value:
+                print(f"DEBUG: Found child with value: {value}")
                 return child
-        
+        print(f"DEBUG: Child with value {value} not found")
         return None
 
     def _find_sibling_after(self, siblings, current, value):
@@ -1176,6 +1198,13 @@ class SemanticAnalyzer:
                 return sibling
         
         return None
+    
+    def _check_type_compatibility(self, expected_type, actual_type, variable_name, line_number):
+        if expected_type != actual_type:
+            error_msg = f"Semantic Error at line {line_number}: Type mismatch in initialization of '{variable_name}': expected {expected_type}, got {actual_type}"
+            self.errors.append(error_msg)
+            return False
+        return True
     
 class SimpleNode:
     def __init__(self, children):
