@@ -6,49 +6,50 @@ class LexicalAnalyzer:
         self.all_num = set("0123456789")
         self.all_alpha = self.alpha_small | self.alpha_big
         self.alpha_num = self.all_alpha | self.all_num
-        self.bool_delim = {';' , ' ' , ',',')', None}
-        self.dt_delim = {' ', '\t', None}
-        self.space_delim = {' ', None}
-        self.semicolon_delim = {';', None}
-        self.colon_delim = {':', None}
-        self.newline_delim ={'\n', None}
-        self.oparan_delim = {'(', None}
+        self.bool_delim = {';' , ' ' , ',',')'}
+        self.dt_delim = {' ', '\t'}
+        self.space_delim = {' '}
+        self.semicolon_delim = {';'}
+        self.colon_delim = {':'}
+        self.newline_delim ={'\n'}
+        self.oparan_delim = {'('}
         self.delim0 = {'()'} | self.space_delim
         
-        self.bool_delim = {';', ' ', ')', ',', '(', '<', '>', '&', '|', None}
+        self.bool_delim = {';', ' ', ')', ',', '(', '<', '>', '&', '|'}
         self.operator_delim = {'>', '<', '=', '&', '|', '+', '-', '*', '/', '%'}
         
-        self.delim1 = {' ', '"', '(', '~', None} | self.alpha_num
-        self.delim2 = {' ', '{',None}
-        self.delim3 = {' ', '(', '~', None} | self.alpha_num
-        self.delim4 = {';', ')', None} | self.alpha_num
-        self.delim5 = {' ', '!', '(', None} | self.alpha_num
+        self.delim1 = {' ', '"', '(', '~'} | self.alpha_num
+        self.delim2 = {' ', '{'}
+        self.delim3 = {' ', '(', '~'} | self.alpha_num
+        self.delim4 = {';', ')'} | self.alpha_num
+        self.delim5 = {' ', '!', '('} | self.alpha_num
         self.delim6 = {'"', '~', '\'', ' '} | self.alpha_num
-        self.delim7 = {'(', None} | self.alpha_num
-        self.delim8 = {' ', '~', '"', '\'', '(', None} | self.alpha_num
+        self.delim7 = {'('}
+        self.delim8 = {' ', '~', '"', '\'', '('} | self.alpha_num
         self.num_delim = {' ', '?', '+', '>', '-', ';', ')', '<', '*', '/', '=', '%', ']', ',','{','}'}
 
-        self.delim12 = {')', '!', '\'', '"', ' ', '(', None} | self.alpha_num
-        self.delim13 = {';', '{', ')', '<', '>', '=', '?', '&', '+', '-', '/', '*', '%', ' ', '!', None}
+        self.delim12 = {')', '!', '\'', '"', ' ', '('} | self.alpha_num
+        self.delim13 = {';', '{', ')', '<', '>', '=', '?', '&', '+', '-', '/', '*', '%', ' ', '!'}
         self.delim14 = {']', ' '} | self.alpha_num
-        self.delim15 = {'=', ';', ' ', '\n', '[',"(", None}
+        self.delim15 = {'=', ';', ' ', '\n', '[',"("}
         self.delim16 = {'\'', '"', '~', ' ', '\n', '{'} | self.alpha_num
-        self.delim17 = {';', '}', ',', ' '  , '\n', None} | self.alpha_small   
+        self.delim17 = {';', '}', ',', ' '  , '\n'} | self.alpha_small   
 
         self.com_delim = {'\n'}
-        self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+', None}
+        self.pasta_delim = {"\t",',', ';', ' ', ':', ')', '}', '+'}
         self.opdelim = {'+', '-', '*', '/', '%', '**'}
-        self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '=', None} | self.opdelim
+        self.id_delim = {' ', ';', ',', '.', '(', ')', '{', '[', ']', '='} | self.opdelim
 
         self.quotes = {'"', '“', '”'}
         self.ascii_delim = {chr(i) for i in range(32, 127)} | self.whitespace
-        self.asciicmnt = {{chr(i) for i in range(32, 127) if chr(i)} not in {'/', '-'}, '\t'} 
+        self.asciicmnt = {chr(i) for i in range(32, 127) if chr(i) not in {'/', '-'}} | {'\t', '\n'} 
         self.asciistr = ({chr(i) for i in range(32, 127) if chr(i) not in self.quotes } | {'\t', '\n', '\\', '“', '”'})
         
         self.errors = []
         self.code = ""
         self.index = 0
         self.line_number = 1
+        self.identifier_count = 0
 
     def nextChar(self):
             if self.index < len(self.code):
@@ -68,12 +69,14 @@ class LexicalAnalyzer:
         state = 0
         lexeme = ""
         line = 1
+        self.identifier_count = 0
 
         while True:
             c = self.nextChar()
 
             if c is None and state == 0:
                 break
+            
             
             print(f"State: {state}, char: {repr(c)}, Lexeme: {repr(lexeme)}, Line: {line}")
             
@@ -121,15 +124,11 @@ class LexicalAnalyzer:
                         state = 129
                         lexeme += 'y'
                     elif c == ' ':
-                        state = 133
-                        lexeme += ' '
+                        continue  # Simply skip space
                     elif c == '\t':
-                        state = 135
-                        lexeme += '\\t'
+                        continue  # Skip tab
                     elif c == '\n':
-                        state = 137
-                        lexeme += "newline"
-                        line += 1
+                        line += 1  # Increment line number
                     elif c == '-':
                         state = 139
                         lexeme += '-'
@@ -214,7 +213,7 @@ class LexicalAnalyzer:
                         state = 6
                         lexeme += c
                     elif c in self.id_delim:  # If we see a valid delimiter, it's a single-char identifier
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -313,7 +312,7 @@ class LexicalAnalyzer:
                         state = 15
                         lexeme += c
                     elif c in self.id_delim: 
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -444,7 +443,7 @@ class LexicalAnalyzer:
                         state = 30
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -576,7 +575,7 @@ class LexicalAnalyzer:
                         state = 0
                     
                 case 34:
-                    if c in self.newline_delim:
+                    if c in self.newline_delim or c.isspace():
                         state = 35
                         if c is not None:
                             self.stepBack()
@@ -586,6 +585,7 @@ class LexicalAnalyzer:
                     else:
                         self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
                         state = 0
+                
                         
                 case 35:
                     tokens.append((lexeme, "dinein"))
@@ -627,7 +627,7 @@ class LexicalAnalyzer:
                         state = 40
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -689,7 +689,7 @@ class LexicalAnalyzer:
                         state = 52
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -814,7 +814,7 @@ class LexicalAnalyzer:
                         state = 57
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -892,7 +892,7 @@ class LexicalAnalyzer:
                         state = 64
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -984,7 +984,7 @@ class LexicalAnalyzer:
                         state = 76
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1072,7 +1072,7 @@ class LexicalAnalyzer:
                         state = 85
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1190,7 +1190,7 @@ class LexicalAnalyzer:
                         state = 91
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1277,7 +1277,7 @@ class LexicalAnalyzer:
                         state = 113
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1486,7 +1486,7 @@ class LexicalAnalyzer:
                         state = 118
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1618,7 +1618,7 @@ class LexicalAnalyzer:
                         state = 130
                         lexeme += c
                     elif c in self.id_delim:
-                        tokens.append(('IDENTIFIER', lexeme))
+                        tokens.append((lexeme,'identifier'))
                         if c is not None:
                             self.stepBack()
                         state = 0
@@ -1838,7 +1838,7 @@ class LexicalAnalyzer:
                         state = 0
                         
                 case 155:
-                    tokens.append((lexeme, "?"))
+                    tokens.append((lexeme, "??"))
                     if c is not None:
                         self.stepBack()
                     state = 0
@@ -1988,21 +1988,25 @@ class LexicalAnalyzer:
                     state = 0
                     
                 case 174:
-                    if c in self.asciicmnt:
-                        state = 174
-                        lexeme += c
-                    elif c in self.com_delim:
-                        state = 175
-                        if c is not None:
-                            self.stepBack()
-                    else:
-                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
+                    if c == '\n' or c is None:
+                        tokens.append((lexeme, "singlecomment"))
                         state = 0
+                    else:
+                        state = 174 
+                        lexeme += c
                         
                 case 175:
-                    if c is not None:
-                        self.stepBack()
-                    state = 0
+                    if c in self.asciicmnt:
+                        state = 175
+                        lexeme += c
+                    elif c in self.com_delim:
+                        tokens.append((lexeme, "singlecomment"))
+                        if c is not None:
+                            self.stepBack()
+                        state = 0
+                    else:
+                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
+                        state = 0 
                     
                 case 176:
                     if c in self.asciicmnt:
@@ -2019,18 +2023,17 @@ class LexicalAnalyzer:
                     if c == '/':
                         state = 178
                         lexeme += c
+                        tokens.append((lexeme, "multicomment"))
                     else:
                         self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
-                        state = 0
+                        state = 0  
+
                         
                 case 178:
-                    if c in self.com_delim:
-                        state = 179
-                        if c is not None:
-                            self.stepBack()
-                    else:
-                        self.errors.append(f"Line {line}: '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
-                        state = 0
+                    if c is not None:
+                        self.stepBack()
+                    state = 0
+
                         
                 case 179:
                     if c is not None:
@@ -2536,7 +2539,9 @@ class LexicalAnalyzer:
                         state = 0
                         
                 case 231:
-                    tokens.append((lexeme, "identifier"))
+                    self.identifier_count += 1  # Increment counter
+                    token_name = f"identifier{self.identifier_count}"
+                    tokens.append((lexeme, token_name))  # Use the numbered token
                     if c is not None:
                         self.stepBack()
                     state = 0
@@ -2546,7 +2551,7 @@ class LexicalAnalyzer:
                         lexeme += c
                         
                         if len(lexeme) > 20:
-                            self.errors.append(f"Line {line}: Identifier '{lexeme}' exceeds 20 characters.")
+                            self.errors.append(f"Line {line}: id '{lexeme}' exceeds 20 characters.")
                             state = 0
 
                     elif c in self.id_delim:
@@ -2555,14 +2560,17 @@ class LexicalAnalyzer:
                             self.stepBack()
                     
                     else:
-                        self.errors.append(f"Line {line}: Identifier '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
+                        self.errors.append(f"Line {line}: Id '{lexeme}' Invalid Delimiter ' {repr(c)} '.")
                         state = 0
                 
                 case 233:
-                    tokens.append((lexeme, "identifier"))
+                    self.identifier_count += 1  # Increment counter
+                    token_name = f"identifier{self.identifier_count}"
+                    tokens.append((lexeme, token_name))  # Use the numbered token
                     if c is not None:
                         self.stepBack()
                     state = 0 
+                    
                 case 234:
                     if c is None or c in self.whitespace:
                         state = 235
@@ -2591,9 +2599,6 @@ class LexicalAnalyzer:
                     state = 0
                     
         return tokens
-     
-    
-    
 
 
     def display_tokens(self, tokens):
